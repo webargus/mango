@@ -75,7 +75,7 @@
                         display: flex;
                         flex-direction: column;
                         align-items: flex-start;
-                        width: min-content;
+                        width: 100%;
                     }
 
                     .mng-accordeon-expanded {
@@ -105,6 +105,7 @@
                         color: var(--background-light);
                         position: relative;
                         min-width: 10em;
+                        width: 100%;
                         padding: .4em 0;
                         display: inline-block;
                         border-radius: .4em .4em 0 0;
