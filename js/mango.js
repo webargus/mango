@@ -78,19 +78,26 @@
                         width: min-content;
                     }
 
-                    .mng-toolbar .mng-btn-right {
+                    .mng-accordeon-expanded {
+                        border-radius: .4em;
+                    }
+
+                    .mng-btn-right {
                         position: absolute;
                         right: .25em;
                         top: .25em;
                     }
                     
-                    .mng-accordeon-wrapper .mng-accordeon-container {
+                    .mng-accordeon-container {
                         background-color: var(--background-light);
                         color: var(--front-dark);
                         display: none;
+                        width: 100%;
                     }
-                    .mng-accordeon-expanded {
+
+                    .mng-container-expanded {
                         display: block!important;
+                        border-radius: 0 0 .4em .4em;
                     }
                     
                     .mng-toolbar {
@@ -123,7 +130,8 @@
                 // add click listener to unfold/fold accordeon content and toggle btn icon
                 btn.addEventListener("click", e => {
                     const clicked = e.target; 
-                    this.container.classList.toggle("mng-accordeon-expanded");
+                    this.container.classList.toggle("mng-container-expanded");
+                    this.container.parentElement.classList.toggle("mng-accordeon-expanded");
                     clicked.setAttribute("icon", clicked.getAttribute("icon") == ICON_EXPAND ? ICON_RETRACT : ICON_EXPAND);
                 });
 
