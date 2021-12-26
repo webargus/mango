@@ -57,7 +57,7 @@
 
             constructor() {
                 super();
-                const shadow = this.attachShadow({mode: 'open'});
+                this.attachShadow({mode: 'open'});
                 this.title = this.getAttribute('title');        
             }
 
@@ -162,9 +162,24 @@
         class MNGListView extends HTMLUListElement {
 
             constructor() {
-                const self = super();
-                this.root = self;
-                this.root.classList.add("mng-listview");
+                super();
+            }
+
+            connectedCallback() {
+                const style = document.createElement("style");
+                style.textContent = `
+                .mng-listview {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+                
+                .mng-listview li:not(:first-child) {
+                    border-top: 1px solid var(--background-dark);
+                }
+                `;
+                this.append(style);
+                this.classList.add("mng-listview");
             }
 
             addItem(item) {
