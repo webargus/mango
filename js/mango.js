@@ -27,7 +27,7 @@
                 @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
                 .mng-round-btn {
-                    color: var(--front-dark);
+                    color: var(--text-dark);
                     opacity: .8;
                     cursor: pointer;
                 }
@@ -89,8 +89,8 @@
                     }
                     
                     .mng-accordeon-container {
-                        background-color: var(--background-light);
-                        color: var(--front-dark);
+                        background-color: var(--text-background);
+                        color: var(--text-dark);
                         display: none;
                         width: 100%;
                     }
@@ -101,8 +101,8 @@
                     }
                     
                     .mng-toolbar {
-                        background-color: var(--front-dark);
-                        color: var(--background-light);
+                        background-color: var(--text-dark);
+                        color: var(--text-background);
                         position: relative;
                         min-width: 10em;
                         width: 100%;

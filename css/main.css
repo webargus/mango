@@ -4,6 +4,8 @@
 @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
 :root {
+    --text-dark: #000000F0;
+    --text-background: #FFFFFF;
     --front-dark: black;
     --background-dark: #C0C0C0;
     --background-light: #F0F0F0;
