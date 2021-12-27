@@ -1,6 +1,14 @@
 
+import MNGDateUtils from "./mangodate.js"
+
 (_ => {
 
+    const globalStyles = `
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300');
+        /* material icons */
+        @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+    `;
+    
     class MNGRoundBtn extends HTMLElement {
 
         icon = "add";
@@ -24,10 +32,7 @@
         connectedCallback () {
             this.shadowRoot.innerHTML = `
                 <style>
-                @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;500&family=Work+Sans:wght@400;600&display=swap');
-                /* material icons */
-                @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
-
+                ${globalStyles}
                 .mng-round-btn {
                     color: var(--text-dark);
                     opacity: .8;
@@ -64,9 +69,7 @@
         connectedCallback () {
             this.shadowRoot.innerHTML = `
                 <style>
-                @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;500&family=Work+Sans:wght@400;600&display=swap');
-
-                @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+                ${globalStyles}
 
                 .mng-accordeon-wrapper {
                     border: 1px solid var(--front-dark);
@@ -156,51 +159,134 @@
     
     customElements.define("mng-accordeon", MNGAccordeon);
 
+    class MNGListView extends HTMLUListElement {
 
-
-    (_ => {
-
-        class MNGListView extends HTMLUListElement {
-
-            constructor() {
-                super();
-            }
-
-            connectedCallback() {
-                const style = document.createElement("style");
-                style.textContent = `
-                .mng-listview {
-                    list-style: none;
-                    padding: 0;
-                    margin: 0;
-                }
-                
-                .mng-listview li:not(:first-child) {
-                    border-top: 1px solid var(--background-dark);
-                }
-                `;
-                this.append(style);
-                this.classList.add("mng-listview");
-            }
-
-            addItem(item) {
-                const li = document.createElement("li");
-                switch(typeof item) {
-                    case "object":
-                        li.appendChild(item);
-                        break;
-                    case "string":
-                        li.textContent = item;
-                        break;
-
-                }
-                this.appendChild(li);
-            }
+        constructor() {
+            super();
         }
 
-        customElements.define("mng-listview", MNGListView, {extends: "ul"});
+        connectedCallback() {
+            const style = document.createElement("style");
+            style.textContent = `
+            .mng-listview {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .mng-listview li:not(:first-child) {
+                border-top: 1px solid var(--background-dark);
+            }
+            `;
+            this.append(style);
+            this.classList.add("mng-listview");
+        }
 
-    })();
+        addItem(item) {
+            const li = document.createElement("li");
+            switch(typeof item) {
+                case "object":
+                    li.appendChild(item);
+                    break;
+                case "string":
+                    li.textContent = item;
+                    break;
+
+            }
+            this.appendChild(li);
+        }
+    }
+
+    customElements.define("mng-listview", MNGListView, {extends: "ul"});
+
+    class MNGCalendar extends HTMLElement {
+
+        btnLeft;
+        btnRight;
+        header;
+        fontFamily = "Roboto, sans-serif";
+
+        constructor() {
+            super();
+            this.attachShadow({mode: 'open'});
+        }
+
+        connectedCallback() {
+            this.shadowRoot.innerHTML = `
+                <style>
+                ${globalStyles}
+
+                .mng-calendar-wrapper {
+                    background-color: var(--background-light, #F0F0F0);
+                    border-radius: .4em;
+                    border: 1px solid var(--background-dark, #C0C0C0);
+                    padding: 1em;
+                    min-width: 12em;
+                    font-family: ${this.fontFamily};
+                    display: flex;
+                    flex-direction: column;
+                    justify-items: center;
+                }
+                .mng-calendar-header {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-between;
+                    align-items: center;
+                    width: 100%;
+                }
+                .mng-calendar-grid {
+                    display: grid;
+                    grid-template-columns: repeat(7, 1fr);
+                    gap: 1em;
+                    font-size: small;
+                    margin-top: 1em;
+                    justify-items: center;
+                }
+                </style>
+            `;
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("mng-calendar-wrapper");
+
+            const hdr = document.createElement("div");
+            hdr.classList.add("mng-calendar-header");
+            // arrow left
+            this.btnLeft = document.createElement("mng-round-btn");
+            this.btnLeft.setAttribute("icon", "chevron_left");
+            this.btnLeft.addEventListener("click", _ => {
+                MNGDateUtils.goPreviousMonth();
+                this.header.textContent = MNGDateUtils.formatDate("MMMM, YYYY", "pt-br");
+            });
+            hdr.appendChild(this.btnLeft);
+            // month, year
+            this.header = document.createElement("div");
+            this.header.textContent = MNGDateUtils.formatDate("MMMM, YYYY", "pt-br");
+            hdr.appendChild(this.header);
+            // arrow right
+            this.btnRight = document.createElement("mng-round-btn");
+            this.btnRight.setAttribute("icon", "chevron_right");
+            this.btnRight.addEventListener("click", _ => {
+                MNGDateUtils.goNextMonth();
+                this.header.textContent = MNGDateUtils.formatDate("MMMM, YYYY", "pt-br");
+            });
+            hdr.appendChild(this.btnRight);
+            // add header with month, year, btn left and btn right
+            wrapper.appendChild(hdr);
+
+            // // calendar grid - add week days
+            // const grid = '';//this.date.weekDays.map(day => `<span>${day.substring(0, 3)}</span>`).join("");
+            // const calGrid = document.createElement("div");
+            // calGrid.classList.add("mng-calendar-grid");
+            // // add month grid
+
+            // calGrid.innerHTML = grid;
+            
+            // wrapper.appendChild(calGrid);
+
+            this.shadowRoot.appendChild(wrapper);
+        }
+    }
+
+    customElements.define("mng-calendar", MNGCalendar);
     
 })();
 

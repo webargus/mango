@@ -1,6 +1,24 @@
 
+import MNGDateUtils from "./mangodate.js"
 
 onload = _ => {
+
+    // console.log(MNGDateUtils.isLeapYear("2020") ? "true" : "false");
+    // console.log(MNGDateUtils.isLeapYear("2021") ? "true" : "false");
+    // MNGDateUtils.goPreviousMonth(new Date(2020, 2, 31));       // March 31 2020 (leap year)
+    // console.log(MNGDateUtils.getDateParams());
+    // MNGDateUtils.goNextMonth(new Date(2020, 0, 31));           // Jan 31 2020 (leap year)
+    // console.log(MNGDateUtils.getDateParams());
+    // MNGDateUtils.goPreviousMonth(new Date(2020, 0, 31));       // Jan 31 2020
+    // console.log(MNGDateUtils.getDateParams());
+    // MNGDateUtils.goNextMonth(new Date(2021, 11, 31))           // Dec 31 2021
+    // console.log(MNGDateUtils.getDateParams());
+    // console.log(MNGDateUtils.getFirstWeekDayOfMonth());
+    // console.log(MNGDateUtils.getFirstWeekDayOfMonth(new Date(2022, 0, 15)));
+    // console.log(MNGDateUtils.formatDate("DD/MM/YYYY", "pt-br"));
+    // console.log(MNGDateUtils.formatDate("DD/MMMM/YYYY", "pt-br"));
+    // console.log(MNGDateUtils.formatDate("W, DD/MMMM/YYYY", "pt-br", new Date(2022, 0, 1)));
+    // console.log(MNGDateUtils.formatDate("WW, DD/MM/YYYY", "pt-br", new Date(2022, 0, 1)));
 
     const accordeon = document.querySelector("#testing");
 

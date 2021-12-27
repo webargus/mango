@@ -7,8 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mango::Main</title>
     <link rel="stylesheet" href="./css/main.css">
+    <script defer src="./js/mangodate.js" type="module"></script>
     <script defer src="./js/mango.js" type="module"></script>
-    <script src="./js/main.js" type="module"></script>
+    <script defer src="./js/main.js" type="module"></script>
 </head>
 <body>
     <mng-round-btn></mng-round-btn>
@@ -17,6 +18,8 @@
     <div style="max-width: 20em; width: 100%;">
         <mng-accordeon id="testing" caption="Accordeon"></mng-accordeon>
     </div>
+
+    <mng-calendar></mng-calendar>
     
     <template id="my-paragraph">
         <div style="display:flex;">
