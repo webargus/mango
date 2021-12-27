@@ -11,7 +11,6 @@ onload = _ => {
     accordeon.addItem(p);
 
     const btn = document.createElement("mng-round-btn");
-    btn.setAttribute("icon", "add");
     accordeon.addItem(btn);
 
     customElements.define('my-paragraph', class extends HTMLElement {

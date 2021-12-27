@@ -11,17 +11,22 @@
     --background-light: #F0F0F0;
 }
 
-* {
-    box-sizing: border-box;
-}
-
 body {
-    margin:0;
-    padding: 0;
     color: var(--front-dark);
     overflow-x: hidden;
     font-family: 'Roboto, sans-serif';
-}
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    /* align-items: center; */
+  }
+  
+  *, *::after, *::before {
+    box-sizing: border-box;
+  }
+
+  
 
 
 
