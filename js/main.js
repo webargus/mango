@@ -3,7 +3,7 @@ import MNGDateUtils from "./mangodate.js"
 
 onload = _ => {
 
-    // console.log(MNGDateUtils.isLeapYear("2020") ? "true" : "false");
+    // console.log(dateUtils.isLeapYear("2020") ? "true" : "false");
     // console.log(MNGDateUtils.isLeapYear("2021") ? "true" : "false");
     // MNGDateUtils.goPreviousMonth(new Date(2020, 2, 31));       // March 31 2020 (leap year)
     // console.log(MNGDateUtils.getDateParams());
@@ -19,6 +19,12 @@ onload = _ => {
     // console.log(MNGDateUtils.formatDate("DD/MMMM/YYYY", "pt-br"));
     // console.log(MNGDateUtils.formatDate("W, DD/MMMM/YYYY", "pt-br", new Date(2022, 0, 1)));
     // console.log(MNGDateUtils.formatDate("WW, DD/MM/YYYY", "pt-br", new Date(2022, 0, 1)));
+    // console.log(MNGDateUtils.getLocaleWeekDayNames("pt-br", 3));
+    // console.log(MNGDateUtils.getCalendarMatrix());
+    // MNGDateUtils.goNextMonth();
+    // console.log(MNGDateUtils.getCalendarMatrix());
+    // MNGDateUtils.goNextMonth();
+    // console.log(MNGDateUtils.getCalendarMatrix());
 
     const accordeon = document.querySelector("#testing");
 
@@ -50,6 +56,10 @@ onload = _ => {
     listview.addItem(div);
     accordeon.addItem(listview);
 
+    const calendar = document.getElementById("calendar");
+    calendar.callback = date => {
+        console.log(date);
+    };
 
 }
 

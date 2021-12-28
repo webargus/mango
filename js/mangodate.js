@@ -1,10 +1,14 @@
 
 
-const MNGDateUtils = (_ => {
+export default class MNGDateUtils {
 
-    var currDate = new Date();
+    currDate;
 
-    const isLeapYear = year => {
+    constructor() {
+        this.currDate = new Date();
+    }
+
+    isLeapYear(year) {
         return ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0);
     }
 
@@ -14,73 +18,95 @@ const MNGDateUtils = (_ => {
      * @param {*} year : Number
      * @param month : Number
      */
-    const getNumDaysInMonth = (year, month) => {
+    getNumDaysInMonth(year, month) {
         return new Date(year, month + 1, 0).getDate();
-    };
-
-    const getDateParams = (date = null) => {
-        var date = date ?? currDate;
-        return [date.getDate(), date.getMonth() + 1, date.getFullYear()];
     }
 
-    const goPreviousMonth = (date = null) => {
-        var date = date ?? currDate;
-        let prevMonth = date.getMonth() - 1;
-        let day = date.getDate();
+    goPreviousMonth(date = null) {
+        var dt = date ?? this.currDate;
+        let prevMonth = dt.getMonth() - 1;
+        let day = dt.getDate();
         if(prevMonth < 0) {
             prevMonth = 11;
              // no need to check for month day between jan and dec, both are 31 day months
-            currDate = new Date(date.getFullYear() - 1, prevMonth, day);
-            return;
+            dt = new Date(dt.getFullYear() - 1, prevMonth, day);
+            if(date == null) { this.currDate = dt;}
+            return dt;
         }
-        const numDays = getNumDaysInMonth(date.getFullYear(), prevMonth);
+        const numDays = this.getNumDaysInMonth(dt.getFullYear(), prevMonth);
         day = day > numDays ? numDays : day;
-        currDate = new Date(date.getFullYear(), prevMonth, day);
-    };
+        dt = new Date(dt.getFullYear(), prevMonth, day);
+        if(date == null) { this.currDate = dt;}
+        return dt;
+    }
 
-    const goNextMonth = (date = null) => {
-        var date = date ?? currDate;
-        let nextMonth = date.getMonth() + 1;
-        let day = date.getDate();
+    goNextMonth(date = null){
+        // save resulting date to currDate if user didn't send a date
+        var dt = date ?? this.currDate;
+        let nextMonth = dt.getMonth() + 1;
+        let day = dt.getDate();
         if(nextMonth > 11) {
             nextMonth = 0;
              // no need to check for month day between dec and jan, both are 31 day months
-             currDate = new Date(date.getFullYear() + 1, nextMonth, day);
-             return;
+             dt = new Date(dt.getFullYear() + 1, nextMonth, day);
+             if(date == null) { this.currDate = dt;}
+             return dt;
         }
-        const numDays = getNumDaysInMonth(date.getFullYear(), nextMonth);
+        const numDays = this.getNumDaysInMonth(dt.getFullYear(), nextMonth);
         day = day > numDays ? numDays : day;
-        currDate = new Date(date.getFullYear(), nextMonth, day);
-    };
+        dt = new Date(dt.getFullYear(), nextMonth, day);
+        if(date == null) { this.currDate = dt; }
+        return dt;
+    }
 
-    const getFirstWeekDayOfMonth = (date = null) => {
-        var date = date ?? currDate;
+    getFirstWeekDayOfMonth(date = null) {
+        var date = date ?? this.currDate;
         return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-    };
+    }
 
-    const formatDate = (fmtString, lang, date = null) => {
-        date = date ?? currDate;
+    formatDate(fmtString, lang, date = null) {
+        date = date ?? this.currDate;
         return fmtString.replace(/\bYYYY\b/, date.getFullYear())
                         .replace(/\bMM\b/, date.toLocaleString(lang, {month: '2-digit'}))
                         .replace(/\bMMMM\b/, date.toLocaleString(lang, {month: 'long'}))
                         .replace(/\bDD\b/, date.toLocaleString(lang, {day: '2-digit'}))
                         .replace(/\bW\b/, date.toLocaleString(lang, {weekday: 'short'}))
                         .replace(/\bWW\b/, date.toLocaleString(lang, {weekday: 'long'}));
-    };
+    }
 
-    return {
-        isLeapYear: isLeapYear,
-        getNumDaysInMonth: getNumDaysInMonth,
-        getDateParams: getDateParams,
-        goPreviousMonth: goPreviousMonth,
-        goNextMonth: goNextMonth,
-        getFirstWeekDayOfMonth: getFirstWeekDayOfMonth,
-        formatDate: formatDate,
-    };
+    getLocaleWeekDayNames(lang, length = null) {
+        var dayNames = [];
+        for(let i = 0; i < 7; i++) {
+            var date = new Date(this.currDate.getFullYear(), this.currDate.getMonth(), i + 1);
+            var name = date.toLocaleString(lang, {weekday: "long"});
+            dayNames[date.getDay()] = length == null ? name : name.substring(0, length);
+        }
+        return dayNames;
+    }
 
-})();
+    getCalendarObject(date = null) {
+        var date = date ?? this.currDate;
+        var calendar = [];
+        const wday = this.getFirstWeekDayOfMonth(date);
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const daysInMonth = this.getNumDaysInMonth(year, month);
+        for(let d = -1*wday + 1 ; d < 6*7 - wday + 1; d++) {
+            if(d <= 0 || d > daysInMonth) {
+                var dt = new Date(year, month, d);
+                calendar.push(dt.getDate());
+            } else {
+                calendar.push(d);
+            }
+        }
+        return {firstWeekDay: wday, numDays: daysInMonth, matrix: calendar};
+    }
 
-export default MNGDateUtils;
+    getDateObject() {
+        return this.currDate;
+    }
+
+}
 
 
 
