@@ -8,6 +8,12 @@ export default class MNGDateUtils {
         this.currDate = new Date();
     }
 
+    isToday(date) {
+        return date.getDate() == this.currDate.getDate() &&
+               date.getMonth() == this.currDate.getMonth() &&
+               date.getFullYear() == this.currDate.getFullYear();
+    }
+
     isLeapYear(year) {
         return ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0);
     }
@@ -90,8 +96,9 @@ export default class MNGDateUtils {
         const wday = this.getFirstWeekDayOfMonth(date);
         const year = date.getFullYear();
         const month = date.getMonth();
+        var todayPos = date.getDate() + wday - 1;
         const daysInMonth = this.getNumDaysInMonth(year, month);
-        for(let d = -1*wday + 1 ; d < 6*7 - wday + 1; d++) {
+        for(let d = 1 - wday; d < 6*7 - wday + 1; d++) {
             if(d <= 0 || d > daysInMonth) {
                 var dt = new Date(year, month, d);
                 calendar.push(dt.getDate());
@@ -99,7 +106,7 @@ export default class MNGDateUtils {
                 calendar.push(d);
             }
         }
-        return {firstWeekDay: wday, numDays: daysInMonth, matrix: calendar};
+        return {firstWeekDay: wday, numDays: daysInMonth, matrix: calendar, todayPos: todayPos};
     }
 
     getDateObject() {

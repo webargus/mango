@@ -285,10 +285,14 @@ import MNGDateUtils from "./mangodate.js"
                     padding: .8em;
                 }
                 .mng-calendar-grid span:hover {
-                    background-color: var(--background-light);
+                    background-color: var(--background-dark);
                 }
                 .mng-calendar-light-day {
                     color: var(--background-dark);
+                }
+                .mng-calendar-today {
+                    color: var(--tex-background);
+                    background-color: var(--background-light);
                 }
                 </style>
             `;
@@ -338,20 +342,22 @@ import MNGDateUtils from "./mangodate.js"
             const calendar = this.dateUtils.getCalendarObject();
             calendar.matrix.forEach((day, ix) => {
                 var span = document.createElement("span");
-                span.textContent = day;
-                if(ix < calendar.firstWeekDay || ix >= calendar.firstWeekDay + calendar.numDays) {
-                    span.classList.add("mng-calendar-light-day");
+                if(ix == calendar.todayPos && this.dateUtils.isToday(new Date())) {
+                    span.classList.add("mng-calendar-today");
                 }
+                span.textContent = day;
                 if(ix < calendar.firstWeekDay) {
                     span.addEventListener("click", e => {
                         const dt = this.dateUtils.goPreviousMonth(this.dateUtils.getDateObject());
                         this.dateCallback(e, dt);
                     });
+                    span.classList.add("mng-calendar-light-day");
                 } else if (ix >= calendar.firstWeekDay + calendar.numDays) {
                     span.addEventListener("click", e => {
                         const dt = this.dateUtils.goNextMonth(this.dateUtils.getDateObject());
                         this.dateCallback(e, dt);
                     });
+                    span.classList.add("mng-calendar-light-day");
                 } else {
                     span.addEventListener("click", this.dateCallback);
                 }
