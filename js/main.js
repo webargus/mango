@@ -28,15 +28,6 @@ onload = _ => {
 
     const accordeon = document.querySelector("#testing");
 
-    const p = document.createElement("p");
-    p.textContent = "paragraph";
-    p.style.margin = 0;
-    p.style.padding = ".5em";
-    accordeon.addItem(p);
-
-    const btn = document.createElement("mng-round-btn");
-    accordeon.addItem(btn);
-
     customElements.define('my-paragraph', class extends HTMLElement {
         constructor() {
             super();
@@ -47,14 +38,23 @@ onload = _ => {
         }
         });
 
-    const listview = document.createElement("ul", {is: "mng-listview"});
-    listview.addItem("item1");
-    var div = document.createElement("div");
-    div.textContent = "item2";
+    const listview = document.createElement("mng-listview");
+    var div = document.createElement("my-paragraph");
     listview.addItem(div);
-    div = document.createElement("my-paragraph");
-    listview.addItem(div);
+    // listview.addItem("item1");
+    // div = document.createElement("div");
+    // div.textContent = "item2";
+    // listview.addItem(div);
     accordeon.addItem(listview);
+
+    const p = document.createElement("p");
+    p.textContent = "paragraph";
+    p.style.margin = 0;
+    p.style.padding = ".5em";
+    accordeon.addItem(p);
+
+    const btn = document.createElement("mng-round-btn");
+    accordeon.addItem(btn);
 
     const calendar = document.getElementById("calendar");
     calendar.callback = date => {

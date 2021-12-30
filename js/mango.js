@@ -70,15 +70,16 @@ import MNGDateUtils from "./mangodate.js"
 
         constructor() {
             super();
-            this.attachShadow({mode: 'open'});
+            // this.attachShadow({mode: 'open'});
             // can't render in connectedCallback: this.container member must be created and made available to
             // inherited classes right after calling this constructor via super
+            this.attachShadow({mode: 'open'});
             this.render();
         }
 
         getStyle() {
-            return `
-            <style>
+            const style = document.createElement("style");
+            style.textContent = `
             ${globalStyles}
 
             .mng-accordeon-wrapper {
@@ -134,13 +135,13 @@ import MNGDateUtils from "./mangodate.js"
                 cursor: pointer;
             }
             
-            </style>
             `;
+            return style;
         }
 
         render() {
             this.caption = this.getAttribute('caption') || '';
-            this.shadowRoot.innerHTML = this.getStyle();
+            this.shadowRoot.append(this.getStyle());
             // create wrapping div
             var wrapper = document.createElement("div");
             wrapper.classList.add("mng-accordeon-wrapper");
@@ -191,13 +192,18 @@ import MNGDateUtils from "./mangodate.js"
     /**
      *  MNGListView
      */
-    class MNGListView extends HTMLUListElement {
+    class MNGListView extends HTMLElement {
+
+        listview;
 
         constructor() {
             super();
+            this.attachShadow({mode: 'open'});
+            this.addItem = this.addItem.bind(this);
+            this.render();
         }
-
-        connectedCallback() {
+        
+        render() {
             const style = document.createElement("style");
             style.textContent = `
             .mng-listview {
@@ -206,12 +212,14 @@ import MNGDateUtils from "./mangodate.js"
                 margin: 0;
             }
             
-            .mng-listview li:not(:last-child) {
-                border-bottom: 1px solid var(--background-dark);
+            .mng-listview li:not(:first-child) {
+                border-top: 1px solid var(--background-dark);
             }
             `;
-            this.append(style);
-            this.classList.add("mng-listview");
+            this.shadowRoot.append(style);
+            this.listview = document.createElement("ul");
+            this.listview.classList.add("mng-listview");
+            this.shadowRoot.appendChild(this.listview);
         }
 
         addItem(item) {
@@ -225,11 +233,11 @@ import MNGDateUtils from "./mangodate.js"
                     break;
 
             }
-            this.appendChild(li);
+            this.listview.appendChild(li);
         }
     }
 
-    customElements.define("mng-listview", MNGListView, {extends: "ul"});
+    customElements.define("mng-listview", MNGListView);
 
     /**
      *  MNGCalendar
@@ -426,6 +434,9 @@ import MNGDateUtils from "./mangodate.js"
 
     customElements.define("mng-calendar", MNGCalendar);
     
+    /**
+     *      MNGSelect
+     */
     class MNGSelect extends MNGAccordeon {
 
         listview;
@@ -435,7 +446,7 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         connectedCallback() {
-            this.listview = document.createElement("ul", {is: "mng-listview"});
+            this.listview = document.createElement("mng-listview");
             // const style = document.createElement("style");
             // style.textContent = `
             //     .mng-select-option {
@@ -446,8 +457,11 @@ import MNGDateUtils from "./mangodate.js"
             // this.listview.appendChild(style);
             super.getContainer().appendChild(this.listview);
             [...this.children].forEach(option => {
-                // option.classList.add("mng-select-option");
-                this.listview.addItem(option);
+                if(option.tagName == 'OPTION') {
+                    // option.classList.add("mng-select-option");
+                    this.listview.addItem(option);
+
+                }
             });
         }
     }
