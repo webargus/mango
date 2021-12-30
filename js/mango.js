@@ -9,6 +9,9 @@ import MNGDateUtils from "./mangodate.js"
         @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
     `;
     
+    /**
+     *      MNGRoundBtn
+     */
     class MNGRoundBtn extends HTMLElement {
 
         icon = "add";
@@ -55,70 +58,89 @@ import MNGDateUtils from "./mangodate.js"
     
     customElements.define('mng-round-btn', MNGRoundBtn);
     
+    /**
+     *      MNGAccordeon
+     */
     class MNGAccordeon extends HTMLElement {
         
         ICON_EXPAND = "expand_more";
         ICON_RETRACT = "expand_less";
+        container;
+        caption;
 
         constructor() {
             super();
             this.attachShadow({mode: 'open'});
-            this.caption = this.getAttribute('caption') || '';        
+            // can't render in connectedCallback: this.container member must be created and made available to
+            // inherited classes right after calling this constructor via super
+            this.render();
         }
 
-        connectedCallback () {
-            this.shadowRoot.innerHTML = `
-                <style>
-                ${globalStyles}
+        getStyle() {
+            return `
+            <style>
+            ${globalStyles}
 
-                .mng-accordeon-wrapper {
-                    border: 1px solid var(--front-dark);
-                    border-radius: .4em .4em 0 0;
-                    font-family: Roboto, sans-serif;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    width: 100%;
-                }
+            .mng-accordeon-wrapper {
+                border: 1px solid var(--background-dark);
+                border-radius: .4em .4em 0 0;
+                font-family: Roboto, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+            }
 
-                .mng-accordeon-expanded {
-                    border-radius: .4em;
-                }
+            .mng-accordeon-expanded {
+                border-radius: .4em;
+            }
 
-                .mng-btn-right {
-                    position: absolute;
-                    right: .25em;
-                    top: .25em;
-                }
-                
-                .mng-accordeon-container {
-                    background-color: var(--text-background);
-                    color: var(--text-dark);
-                    display: none;
-                    width: 100%;
-                }
+            .mng-btn-right {
+                position: absolute;
+                right: .25em;
+                top: .25em;
+            }
+            
+            .mng-accordeon-container {
+                background-color: var(--text-background);
+                color: var(--text-dark);
+                display: none;
+                width: 100%;
+            }
 
-                .mng-container-expanded {
-                    display: block!important;
-                    border-radius: 0 0 .4em .4em;
-                }
-                
-                .mng-toolbar {
-                    background-color: var(--text-dark);
-                    color: var(--text-background);
-                    position: relative;
-                    min-width: 10em;
-                    width: 100%;
-                    padding: .4em 0;
-                    display: inline-block;
-                    border-radius: .4em .4em 0 0;
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    text-align: center;
-                }
-                
-                </style>
+            .mng-accordeon-container:last-child {
+                overflow: hidden!important; /* hides sharp edges of content behind element's round corner */
+            }
+
+            .mng-container-expanded {
+                display: block!important;
+                border-radius: 0 0 .4em .4em;
+                border-top: 1px solid var(--background-dark);
+            }
+            
+            .mng-toolbar {
+                background-color: var(--background-light);
+                color: var(--text-dark);
+                position: relative;
+                min-width: 10em;
+                min-height: 1.2em;
+                width: 100%;
+                padding: .4em 0;
+                display: inline-block;
+                border-radius: .4em .4em 0 0;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                text-align: center;
+                cursor: pointer;
+            }
+            
+            </style>
             `;
+        }
+
+        render() {
+            this.caption = this.getAttribute('caption') || '';
+            this.shadowRoot.innerHTML = this.getStyle();
             // create wrapping div
             var wrapper = document.createElement("div");
             wrapper.classList.add("mng-accordeon-wrapper");
@@ -127,19 +149,22 @@ import MNGDateUtils from "./mangodate.js"
             var div = document.createElement("div");
             div.classList.add("mng-toolbar");
             div.textContent = this.caption;
+
             // create accordeon content fold/unfold btn and add it to wrapper
             const btn = document.createElement("mng-round-btn");
             btn.setAttribute("icon", this.ICON_EXPAND);
             btn.classList.add("mng-btn-right");
             // add click listener to unfold/fold accordeon content and toggle btn icon
             btn.addEventListener("click", e => {
+                e.cancelBubble = true;
                 const clicked = e.target; 
                 this.container.classList.toggle("mng-container-expanded");
                 this.container.parentElement.classList.toggle("mng-accordeon-expanded");
                 clicked.setAttribute("icon", clicked.getAttribute("icon") == this.ICON_EXPAND ? this.ICON_RETRACT : this.ICON_EXPAND);
             });
-
             div.appendChild(btn);
+            div.addEventListener("click", e => { btn.click(); });
+
             // append toolbar to custom element wrapper
             wrapper.appendChild(div);
 
@@ -155,10 +180,17 @@ import MNGDateUtils from "./mangodate.js"
         addItem(item) {
             this.container.appendChild(item);
         }
+
+        getContainer() {
+            return this.container;
+        }
     }
     
     customElements.define("mng-accordeon", MNGAccordeon);
 
+    /**
+     *  MNGListView
+     */
     class MNGListView extends HTMLUListElement {
 
         constructor() {
@@ -174,8 +206,8 @@ import MNGDateUtils from "./mangodate.js"
                 margin: 0;
             }
             
-            .mng-listview li:not(:first-child) {
-                border-top: 1px solid var(--background-dark);
+            .mng-listview li:not(:last-child) {
+                border-bottom: 1px solid var(--background-dark);
             }
             `;
             this.append(style);
@@ -199,6 +231,9 @@ import MNGDateUtils from "./mangodate.js"
 
     customElements.define("mng-listview", MNGListView, {extends: "ul"});
 
+    /**
+     *  MNGCalendar
+     */
     class MNGCalendar extends HTMLElement {
 
         dateUtils = new MNGDateUtils();
@@ -285,6 +320,7 @@ import MNGDateUtils from "./mangodate.js"
                     padding: .8em;
                 }
                 .mng-calendar-grid span:hover {
+                    color: var(--text-background);
                     background-color: var(--background-dark);
                 }
                 .mng-calendar-light-day {
@@ -390,6 +426,33 @@ import MNGDateUtils from "./mangodate.js"
 
     customElements.define("mng-calendar", MNGCalendar);
     
+    class MNGSelect extends MNGAccordeon {
+
+        listview;
+
+        constructor() {
+            super();
+        }
+
+        connectedCallback() {
+            this.listview = document.createElement("ul", {is: "mng-listview"});
+            // const style = document.createElement("style");
+            // style.textContent = `
+            //     .mng-select-option {
+            //         color: var(--text-dark);
+            //         background-color: var(--background-dark);
+            //     }
+            // `;
+            // this.listview.appendChild(style);
+            super.getContainer().appendChild(this.listview);
+            [...this.children].forEach(option => {
+                // option.classList.add("mng-select-option");
+                this.listview.addItem(option);
+            });
+        }
+    }
+
+    customElements.define("mng-select", MNGSelect);
 })();
 
 
