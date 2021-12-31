@@ -67,6 +67,9 @@ import MNGDateUtils from "./mangodate.js"
         ICON_RETRACT = "expand_less";
         container;
         caption;
+        toolbar;
+        onOpen = new Event("open");
+        onClose = new Event("close");
 
         constructor() {
             super();
@@ -147,27 +150,37 @@ import MNGDateUtils from "./mangodate.js"
             wrapper.classList.add("mng-accordeon-wrapper");
 
             // create toolbar
-            var div = document.createElement("div");
-            div.classList.add("mng-toolbar");
-            div.textContent = this.caption;
+            this.toolbar = document.createElement("div");
+            this.toolbar.classList.add("mng-toolbar");
+            this.toolbar.textContent = this.caption;
 
-            // create accordeon content fold/unfold btn and add it to wrapper
+            // create accordeon content fold/unfold btn and add it to toolbar
             const btn = document.createElement("mng-round-btn");
             btn.setAttribute("icon", this.ICON_EXPAND);
             btn.classList.add("mng-btn-right");
             // add click listener to unfold/fold accordeon content and toggle btn icon
             btn.addEventListener("click", e => {
-                e.cancelBubble = true;
+                e.cancelBubble = true;      // important
                 const clicked = e.target; 
                 this.container.classList.toggle("mng-container-expanded");
                 this.container.parentElement.classList.toggle("mng-accordeon-expanded");
-                clicked.setAttribute("icon", clicked.getAttribute("icon") == this.ICON_EXPAND ? this.ICON_RETRACT : this.ICON_EXPAND);
+                if(clicked.getAttribute("icon") == this.ICON_EXPAND) {
+                    // is retracted => will open
+                    clicked.setAttribute("icon", this.ICON_RETRACT);
+                    // dispatch onOpen event
+                    this.dispatchEvent(this.onOpen);
+                } else {
+                    // is open => will retract
+                    clicked.setAttribute("icon", this.ICON_EXPAND);
+                    // dispatch onClose event
+                    this.dispatchEvent(this.onClose);
+                }
             });
-            div.appendChild(btn);
-            div.addEventListener("click", e => { btn.click(); });
+            this.toolbar.appendChild(btn);
+            this.toolbar.addEventListener("click", e => { btn.click(); });   // delegate clicks on toolbar to toolbar btn
 
             // append toolbar to custom element wrapper
-            wrapper.appendChild(div);
+            wrapper.appendChild(this.toolbar);
 
             // create accordeon container div and append it to wrapper
             this.container = document.createElement("div");
@@ -184,6 +197,11 @@ import MNGDateUtils from "./mangodate.js"
 
         getContainer() {
             return this.container;
+        }
+
+        setCaption(caption) {
+            this.caption = caption;
+            this.toolbar.textContent = this.caption;
         }
     }
     
@@ -212,8 +230,8 @@ import MNGDateUtils from "./mangodate.js"
                 margin: 0;
             }
             
-            .mng-listview li:not(:first-child) {
-                border-top: 1px solid var(--background-dark);
+            .mng-listview li:not(:last-child) {
+                border-bottom: 1px solid var(--background-dark);
             }
             `;
             this.shadowRoot.append(style);
@@ -440,30 +458,52 @@ import MNGDateUtils from "./mangodate.js"
     class MNGSelect extends MNGAccordeon {
 
         listview;
+        value;
 
         constructor() {
             super();
         }
 
         connectedCallback() {
+            // add listview to accordeon container
             this.listview = document.createElement("mng-listview");
-            // const style = document.createElement("style");
-            // style.textContent = `
-            //     .mng-select-option {
-            //         color: var(--text-dark);
-            //         background-color: var(--background-dark);
-            //     }
-            // `;
-            // this.listview.appendChild(style);
-            super.getContainer().appendChild(this.listview);
-            [...this.children].forEach(option => {
-                if(option.tagName == 'OPTION') {
-                    // option.classList.add("mng-select-option");
-                    this.listview.addItem(option);
-
+            const style = document.createElement("style");
+            style.textContent = `
+                .mng-select-option {
+                    color: var(--text-dark);
+                    background-color: var(--text-background);
                 }
+                .mng-option-selected {
+                    color: var(--text-background);
+                    background-color: var(--background-dark);
+                }
+            `;
+            this.listview.shadowRoot.appendChild(style);
+            super.getContainer().appendChild(this.listview);
+            // initialize widget value
+            this.value = null;
+            [...this.children].forEach(option => {
+                let tempValue = option.getAttribute("value");
+                if(tempValue == undefined) {
+                    tempValue = option.textContent;
+                }
+                if(option.getAttribute("selected")) {
+                    this.value = tempValue;
+                    super.setCaption(option.textContent);
+                }
+                option.classList.add("mng-select-option");
+                this.listview.addItem(option);
+
             });
+            // listen to accordeon custom 'open' event
+            this.addEventListener("open", this.handleOpenSelect);
         }
+
+        handleOpenSelect(e) {
+            console.log("select open event captured");
+
+        }
+
     }
 
     customElements.define("mng-select", MNGSelect);

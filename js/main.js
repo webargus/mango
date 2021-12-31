@@ -39,22 +39,23 @@ onload = _ => {
         });
 
     const listview = document.createElement("mng-listview");
-    var div = document.createElement("my-paragraph");
-    listview.addItem(div);
-    // listview.addItem("item1");
-    // div = document.createElement("div");
-    // div.textContent = "item2";
-    // listview.addItem(div);
-    accordeon.addItem(listview);
+    listview.addItem("item1");
 
-    const p = document.createElement("p");
-    p.textContent = "paragraph";
-    p.style.margin = 0;
-    p.style.padding = ".5em";
-    accordeon.addItem(p);
+    // const p = document.createElement("p");
+    // p.textContent = "paragraph";
+    // p.style.margin = 0;
+    // p.style.padding = ".5em";
+    // accordeon.addItem(p);
 
     const btn = document.createElement("mng-round-btn");
     accordeon.addItem(btn);
+
+    div = document.createElement("div");
+    div.textContent = "item2";
+    listview.addItem(div);
+    var div = document.createElement("my-paragraph");
+    listview.addItem(div);
+    accordeon.addItem(listview);
 
     const calendar = document.getElementById("calendar");
     calendar.callback = date => {
