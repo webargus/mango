@@ -67,6 +67,7 @@ import MNGDateUtils from "./mangodate.js"
         ICON_RETRACT = "expand_less";
         container;
         caption;
+        captionDiv;
         toolbar;
         onOpen = new Event("open");
         onClose = new Event("close");
@@ -99,12 +100,6 @@ import MNGDateUtils from "./mangodate.js"
                 border-radius: .4em;
             }
 
-            .mng-btn-right {
-                position: absolute;
-                right: .25em;
-                top: .25em;
-            }
-            
             .mng-accordeon-container {
                 background-color: var(--text-background);
                 color: var(--text-dark);
@@ -125,17 +120,17 @@ import MNGDateUtils from "./mangodate.js"
             .mng-toolbar {
                 background-color: var(--background-light);
                 color: var(--text-dark);
-                position: relative;
                 min-width: 10em;
-                min-height: 1.2em;
                 width: 100%;
-                padding: .4em 0;
-                display: inline-block;
+                box-sizing: border-box;
+                padding: .4em;
                 border-radius: .4em .4em 0 0;
                 text-overflow: ellipsis;
                 overflow: hidden;
-                text-align: center;
                 cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
             }
             
             `;
@@ -152,12 +147,15 @@ import MNGDateUtils from "./mangodate.js"
             // create toolbar
             this.toolbar = document.createElement("div");
             this.toolbar.classList.add("mng-toolbar");
-            this.toolbar.textContent = this.caption;
+
+            // add caption div to toolbar
+            this.captionDiv = document.createElement("div");
+            this.captionDiv.textContent = this.caption;
+            this.toolbar.appendChild(this.captionDiv);
 
             // create accordeon content fold/unfold btn and add it to toolbar
             const btn = document.createElement("mng-round-btn");
             btn.setAttribute("icon", this.ICON_EXPAND);
-            btn.classList.add("mng-btn-right");
             // add click listener to unfold/fold accordeon content and toggle btn icon
             btn.addEventListener("click", e => {
                 e.cancelBubble = true;      // important
@@ -201,7 +199,7 @@ import MNGDateUtils from "./mangodate.js"
 
         setCaption(caption) {
             this.caption = caption;
-            this.toolbar.textContent = this.caption;
+            this.captionDiv.textContent = this.caption;
         }
     }
     
@@ -482,26 +480,42 @@ import MNGDateUtils from "./mangodate.js"
             super.getContainer().appendChild(this.listview);
             // initialize widget value
             this.value = null;
-            [...this.children].forEach(option => {
-                let tempValue = option.getAttribute("value");
-                if(tempValue == undefined) {
-                    tempValue = option.textContent;
+            var tempValue, tempOption;
+            [...this.children].forEach((option, ix) => {
+                if(ix == 0) {
+                    // temporarily save value of top-most option in case no select assigned
+                    tempValue = option.getAttribute("value");
+                    tempOption = option.textContent;
+                    if(tempValue == undefined) {
+                        tempValue = tempOption;
+                    }
                 }
                 if(option.getAttribute("selected")) {
-                    this.value = tempValue;
+                    this.value = option.getAttribute("value");
+                    if(this.value == undefined) {
+                        this.value = option.textContent;
+                    }
                     super.setCaption(option.textContent);
                 }
                 option.classList.add("mng-select-option");
+                // transfer items from 'this' to internal listview
                 this.listview.addItem(option);
-
             });
+            if(this.value == null) {
+                this.value = tempValue;
+                super.setCaption(tempOption);
+            }
+
             // listen to accordeon custom 'open' event
             this.addEventListener("open", this.handleOpenSelect);
         }
 
         handleOpenSelect(e) {
-            console.log("select open event captured");
-
+            this.listview.shadowRoot.querySelectorAll("ul li").forEach(li => {
+                let option = li.querySelector(".mng-select-option");
+                option.getAttribute("value") == this.value || option.innerText == this.value ?
+                option.classList.add("mng-option-selected") : option.classList.remove("mng-option-selected");
+            });
         }
 
     }
