@@ -74,7 +74,6 @@ import MNGDateUtils from "./mangodate.js"
 
         constructor() {
             super();
-            // this.attachShadow({mode: 'open'});
             // can't render in connectedCallback: this.container member must be created and made available to
             // inherited classes right after calling this constructor via super
             this.attachShadow({mode: 'open'});
@@ -158,7 +157,7 @@ import MNGDateUtils from "./mangodate.js"
             btn.setAttribute("icon", this.ICON_EXPAND);
             // add click listener to unfold/fold accordeon content and toggle btn icon
             btn.addEventListener("click", e => {
-                e.cancelBubble = true;      // important
+                e.stopPropagation();      // important
                 const clicked = e.target; 
                 this.container.classList.toggle("mng-container-expanded");
                 this.container.parentElement.classList.toggle("mng-accordeon-expanded");
@@ -200,6 +199,10 @@ import MNGDateUtils from "./mangodate.js"
         setCaption(caption) {
             this.caption = caption;
             this.captionDiv.textContent = this.caption;
+        }
+
+        retract() {
+            this.toolbar.click();
         }
     }
     
@@ -460,6 +463,8 @@ import MNGDateUtils from "./mangodate.js"
 
         constructor() {
             super();
+            this.handleOptionMouseOver = this.handleOptionMouseOver.bind(this);
+            this.handleOptionSelect = this.handleOptionSelect.bind(this);
         }
 
         connectedCallback() {
@@ -483,7 +488,7 @@ import MNGDateUtils from "./mangodate.js"
             var tempValue, tempOption;
             [...this.children].forEach((option, ix) => {
                 if(ix == 0) {
-                    // temporarily save value of top-most option in case no select assigned
+                    // temporarily save value of top-most option in case no select attr assigned
                     tempValue = option.getAttribute("value");
                     tempOption = option.textContent;
                     if(tempValue == undefined) {
@@ -500,6 +505,9 @@ import MNGDateUtils from "./mangodate.js"
                 option.classList.add("mng-select-option");
                 // transfer items from 'this' to internal listview
                 this.listview.addItem(option);
+
+                option.addEventListener("mouseover", this.handleOptionMouseOver);
+                option.addEventListener("click", this.handleOptionSelect);
             });
             if(this.value == null) {
                 this.value = tempValue;
@@ -507,12 +515,29 @@ import MNGDateUtils from "./mangodate.js"
             }
 
             // listen to accordeon custom 'open' event
-            this.addEventListener("open", this.handleOpenSelect);
+            this.addEventListener("open", this.handleDeploySelectContainer);
         }
 
-        handleOpenSelect(e) {
-            this.listview.shadowRoot.querySelectorAll("ul li").forEach(li => {
-                let option = li.querySelector(".mng-select-option");
+        handleOptionSelect(e) {
+            let option = e.target;
+            this.value = option.getAttribute("value");
+            if(this.value == undefined) {
+                this.value = option.textContent;
+            }
+            super.setCaption(option.textContent);
+            super.retract();
+            console.log("value:", this.value);
+        }
+
+        handleOptionMouseOver(e) {
+            this.listview.shadowRoot.querySelectorAll(".mng-select-option").forEach(option => {
+                option.classList.remove("mng-option-selected");
+            });
+            e.target.classList.add("mng-option-selected");
+        }
+
+        handleDeploySelectContainer(e) {
+            this.listview.shadowRoot.querySelectorAll(".mng-select-option").forEach(option => {
                 option.getAttribute("value") == this.value || option.innerText == this.value ?
                 option.classList.add("mng-option-selected") : option.classList.remove("mng-option-selected");
             });
