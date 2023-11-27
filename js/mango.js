@@ -546,6 +546,114 @@ import MNGDateUtils from "./mangodate.js"
     }
 
     customElements.define("mng-select", MNGSelect);
+
+    /*
+    *   MNGModalOk
+    */
+    class MNGModalOk extends HTMLElement {
+
+        closeBtn;
+
+        constructor() {
+            super();
+            this.attachShadow({mode: 'open'});
+            this.render();
+        }
+
+        getStyle() {
+            const style = document.createElement("style");
+            style.textContent = `
+                body.freeze {   /* freeze body when showing popup modals */
+                    overflow: hidden;
+                    pointer-events: none;
+                }
+
+                .modal {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    width: 240px;
+                    padding: 1em;
+                    border-radius: 10px;
+                    background: white;
+                    box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
+                    text-align: center;
+                    /*  set modal height 4em smaller than view height
+                    when view height smaller than default modal height;
+                    make modal scrollable when it happens */
+                    overflow: auto;
+                    pointer-events: auto;
+                    max-height: calc(100vh - 4em);
+                }
+
+                @keyframes modal-pop {
+                    0% { 
+                        opacity: 0;
+                    }
+                    /* center modal on page */
+                    100% {
+                        left: 50%;
+                        top: 50%;
+                        transform: translate(-50%, -50%);
+                        opacity: 1;
+                    }
+                }
+
+                .modal .close-button {
+                    position: absolute;
+                    right: 1em;
+                    top: .5em;
+                }
+                .modal-open {
+                    display: block!important;
+                }
+                .modal-open .modal {
+                    animation: modal-pop .3s cubic-bezier(0,.6,1,1) forwards;
+                }
+                .modal-shroud {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    z-index: 10;
+                    background: rgba(0,0,0, 0.4);
+                    display: none;
+                }
+
+                .modal .cancel-button, .ok-button {
+                    width: 6em;
+                    background: #193b99;
+                    color: white;
+                    border: 0;
+                    padding: .8em;
+                    border-radius: 1em;
+                    cursor: pointer;
+                }
+            `;
+            return style
+        }
+
+        render() {
+            this.shadowRoot.append(this.getStyle());
+            // add background shroud to darken screen and wrapp modal popup
+            const shroud = document.createElement("div");
+            shroud.classList.add("modal-shroud");
+            this.shadowRoot.appendChild(shroud);
+            // create modal popup
+            const popup = document.createElement("div");
+            popup.classList.add("modal");
+            shroud.appendChild(popup);
+            // create popup top right close button
+            this.closeBtn = new MNGRoundBtn();
+            this.closeBtn.classList.add("close-button");
+            this.closeBtn.setAttribute("icon", "close");
+            popup.appendChild(this.closeBtn);
+        }
+
+    }
+
+    customElements.define("mng-modalok", MNGModalOk);
 })();
 
 
