@@ -560,9 +560,20 @@ import MNGDateUtils from "./mangodate.js"
             this.render();
         }
 
+        static get observedAttributes() { return ['header']; }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            if(name == 'header') {
+                setTimeout(_ => {
+                    this.shadowRoot.querySelector("h3").textContent = newValue;
+                });
+            }
+        }
+
         getStyle() {
             const style = document.createElement("style");
             style.textContent = `
+                ${globalStyles}
                 body.freeze {   /* freeze body when showing popup modals */
                     overflow: hidden;
                     pointer-events: none;
@@ -634,8 +645,13 @@ import MNGDateUtils from "./mangodate.js"
             return style
         }
 
+        connectedCallback() {
+            this.setAttribute("header", "Modal OK");
+        }
+
         render() {
             this.shadowRoot.append(this.getStyle());
+            //this.setAttribute("header", this.header);
             // add background shroud to darken screen and wrapp modal popup
             const shroud = document.createElement("div");
             shroud.classList.add("modal-shroud");
@@ -649,6 +665,9 @@ import MNGDateUtils from "./mangodate.js"
             this.closeBtn.classList.add("close-button");
             this.closeBtn.setAttribute("icon", "close");
             popup.appendChild(this.closeBtn);
+            // create header
+            const header = document.createElement("h3");
+            popup.appendChild(header);
         }
 
     }
