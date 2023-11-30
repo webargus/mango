@@ -17,19 +17,6 @@ import MNGDateUtils from "./mangodate.js"
             border-radius: 10px;
             padding: 0 .3em;
         }
-
-        .mng-round-btn {
-            color: var(--text-dark);
-            opacity: .8;
-            cursor: pointer;
-        }
-        .mng-round-btn:hover {
-            opacity: 1;
-        }
-        .mng-btn-disk {
-            background-color: var(--background-dark);
-            border-radius: 50%;
-}
     `;
 
     class MNGGlobalBase extends HTMLElement {
@@ -75,6 +62,23 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         render() {
+            const style = document.createElement("style");
+            style.textContent = `
+                .mng-round-btn {
+                    color: var(--text-dark);
+                    opacity: .8;
+                    cursor: pointer;
+                }
+                .mng-round-btn:hover {
+                    opacity: 1;
+                }
+                .mng-btn-disk {
+                    background-color: var(--background-dark);
+                    border-radius: 50%;
+                }
+            `;
+            super.shadowRoot.append(style);
+
             const span = document.createElement("span");
             span.classList.add("mng-round-btn", "mng-btn-disk", "material-icons");
             span.textContent = this.icon;
