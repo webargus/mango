@@ -45,7 +45,6 @@ import MNGDateUtils from "./mangodate.js"
     
         constructor() {
             super();
-            // this.attachShadow({mode: 'open'});
             this.icon = this.getAttribute("icon") ?? this.icon;
             super.render();
             this.render();
@@ -92,7 +91,7 @@ import MNGDateUtils from "./mangodate.js"
     /**
      *      MNGAccordeon
      */
-    class MNGAccordeon extends HTMLElement {
+    class MNGAccordeon extends MNGGlobalBase {
         
         ICON_EXPAND = "expand_more";
         ICON_RETRACT = "expand_less";
@@ -105,17 +104,13 @@ import MNGDateUtils from "./mangodate.js"
 
         constructor() {
             super();
-            // can't render in connectedCallback: this.container member must be created and made available to
-            // inherited classes right after calling this constructor via super
-            this.attachShadow({mode: 'open'});
+            super.render();
             this.render();
         }
 
         getStyle() {
             const style = document.createElement("style");
             style.textContent = `
-            ${globalStyles}
-
             .mng-accordeon-wrapper {
                 border: 1px solid var(--background-dark);
                 border-radius: .4em .4em 0 0;
@@ -169,7 +164,7 @@ import MNGDateUtils from "./mangodate.js"
 
         render() {
             this.caption = this.getAttribute('caption') || '';
-            this.shadowRoot.append(this.getStyle());
+            super.shadowRoot.append(this.getStyle());
             // create wrapping div
             var wrapper = document.createElement("div");
             wrapper.classList.add("mng-accordeon-wrapper");
@@ -216,7 +211,7 @@ import MNGDateUtils from "./mangodate.js"
             wrapper.appendChild(this.container);
 
             // append wrapper to custom element
-            this.shadowRoot.appendChild(wrapper);
+            super.shadowRoot.appendChild(wrapper);
         }
 
         addItem(item) {
