@@ -18,19 +18,50 @@ import MNGDateUtils from "./mangodate.js"
             padding: 0 .3em;
         }
 
+        .mng-round-btn {
+            color: var(--text-dark);
+            opacity: .8;
+            cursor: pointer;
+        }
+        .mng-round-btn:hover {
+            opacity: 1;
+        }
+        .mng-btn-disk {
+            background-color: var(--background-dark);
+            border-radius: 50%;
+}
     `;
+
+    class MNGGlobalBase extends HTMLElement {
+
+        constructor() {
+            super();
+            this.attachShadow({mode: 'open'});
+            this.render();
+        }
+
+        render() {
+            this.shadowRoot.innerHTML = `
+            <style>
+            ${globalStyles}
+            </style>
+            `;
+        }
+    }
     
     /**
      *      MNGRoundBtn
      */
-    class MNGRoundBtn extends HTMLElement {
+    class MNGRoundBtn extends MNGGlobalBase {
 
         icon = "add";
     
         constructor() {
             super();
-            this.attachShadow({mode: 'open'});
+            // this.attachShadow({mode: 'open'});
             this.icon = this.getAttribute("icon") ?? this.icon;
+            super.render();
+            this.render();
         }
 
         static get observedAttributes() { return ['icon']; }
@@ -38,31 +69,16 @@ import MNGDateUtils from "./mangodate.js"
         attributeChangedCallback(name, oldValue, newValue) {
             if(name == 'icon') {
                 setTimeout(_ => {
-                    this.shadowRoot.querySelector("span").textContent = newValue;
+                    super.shadowRoot.querySelector("span").textContent = newValue;
                 });
             }
         }
 
-        connectedCallback () {
-            this.shadowRoot.innerHTML = `
-                <style>
-                ${globalStyles}
-                .mng-round-btn {
-                    color: var(--text-dark);
-                    opacity: .8;
-                    cursor: pointer;
-                }
-                .mng-round-btn:hover {
-                    opacity: 1;
-                }
-                .mng-btn-disk {
-                    background-color: var(--background-dark);
-                    border-radius: 50%;
-}
-
-                </style>
-                <span class="mng-round-btn mng-btn-disk material-icons">${this.icon}</span>
-            `;
+        render() {
+            const span = document.createElement("span");
+            span.classList.add("mng-round-btn", "mng-btn-disk", "material-icons");
+            span.textContent = this.icon;
+            super.shadowRoot.appendChild(span);
         }
     
     }
