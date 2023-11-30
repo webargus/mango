@@ -3,23 +3,24 @@ import MNGDateUtils from "./mangodate.js"
 
 (_ => {
 
-    const globalStyles = `
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300');
-        /* material icons */
-        @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
-
-        .mng-two-btn-header {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--background-light);
-            border-radius: 10px;
-            padding: 0 .3em;
-        }
-    `;
-
     class MNGGlobalBase extends HTMLElement {
+
+        globalStyles = `
+            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300');
+            /* material icons */
+            @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+            .mng-two-btn-header {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                background-color: var(--background-light);
+                border-radius: 10px;
+                padding: 0 .3em;
+                max-height: 2.6em;
+            }
+        `;
 
         constructor() {
             super();
@@ -30,7 +31,7 @@ import MNGDateUtils from "./mangodate.js"
         render() {
             this.shadowRoot.innerHTML = `
             <style>
-            ${globalStyles}
+            ${this.globalStyles}
             </style>
             `;
         }
@@ -287,9 +288,9 @@ import MNGDateUtils from "./mangodate.js"
     /**
      *  MNGCalendar
      */
-    class MNGCalendar extends HTMLElement {
+    class MNGCalendar extends MNGGlobalBase {
 
-        dateUtils = new MNGDateUtils();
+        dateUtils;
         btnLeft;
         btnRight;
         header;
@@ -305,12 +306,12 @@ import MNGDateUtils from "./mangodate.js"
          */
         constructor(callback = null) {
             super();
+            super.render();
             this.callback = callback;
             this.fontFamily = "Roboto, sans-serif";
             this.goNextMonth = this.goNextMonth.bind(this);         // crashes unless we bind these methods to 'this'
             this.goPreviousMonth = this.goPreviousMonth.bind(this);
             this.dateCallback = this.dateCallback.bind(this);
-            this.attachShadow({mode: 'open'});
         }
         
         connectedCallback() {
@@ -318,9 +319,9 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         render() {
-            this.shadowRoot.innerHTML = `
-                <style>
-                ${globalStyles}
+            this.dateUtils = new MNGDateUtils();
+            const style = document.createElement("style");
+            style.textContent = `
 
                 .mng-calendar-wrapper {
                     background-color: var(--background-light, #F0F0F0);
@@ -376,8 +377,9 @@ import MNGDateUtils from "./mangodate.js"
                     color: var(--tex-background);
                     background-color: var(--background-light);
                 }
-                </style>
             `;
+            
+            super.shadowRoot.append(style); 
             const wrapper = document.createElement("div");
             wrapper.classList.add("mng-calendar-wrapper");
 
@@ -414,7 +416,7 @@ import MNGDateUtils from "./mangodate.js"
             wrapper.appendChild(this.calGrid);
             this.renderCalendar();
 
-            this.shadowRoot.appendChild(wrapper);
+            super.shadowRoot.appendChild(wrapper);
         }
 
         renderCalendar() {
