@@ -14,7 +14,8 @@
 body {
     color: var(--front-dark);
     overflow-x: hidden;
-    font-family: 'Roboto, sans-serif';
+    /* Strangely enough, Brave/Chrome(?) do not process font-family style if it's between quotes */
+    font-family: Roboto, sans-serif;
     width: 100vw;
     height: 100vh;
     display: flex;
@@ -23,10 +24,17 @@ body {
     gap: 1em;
     align-items: center;
 }
+                
+body.freeze {   /* freeze body when showing popup modals */
+    overflow: hidden;
+    pointer-events: none;
+}
 
 *, *::after, *::before {
 box-sizing: border-box;
 }
+
+
 
 
 

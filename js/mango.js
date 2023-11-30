@@ -7,6 +7,17 @@ import MNGDateUtils from "./mangodate.js"
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300');
         /* material icons */
         @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+        .mng-two-btn-header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--background-light);
+            border-radius: 10px;
+            padding: 0 .3em;
+        }
+
     `;
     
     /**
@@ -307,13 +318,6 @@ import MNGDateUtils from "./mangodate.js"
                     flex-direction: column;
                     justify-items: center;
                 }
-                .mng-calendar-header {
-                    display: flex;
-                    flex-direction: row;
-                    justify-content: space-between;
-                    align-items: center;
-                    width: 100%;
-                }
                 .mng-weekdays-grid {
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
@@ -363,7 +367,7 @@ import MNGDateUtils from "./mangodate.js"
             wrapper.classList.add("mng-calendar-wrapper");
 
             const hdr = document.createElement("div");
-            hdr.classList.add("mng-calendar-header");
+            hdr.classList.add("mng-two-btn-header");
             // arrow left
             this.btnLeft = document.createElement("mng-round-btn");
             this.btnLeft.setAttribute("icon", "chevron_left");
@@ -574,17 +578,13 @@ import MNGDateUtils from "./mangodate.js"
             const style = document.createElement("style");
             style.textContent = `
                 ${globalStyles}
-                body.freeze {   /* freeze body when showing popup modals */
-                    overflow: hidden;
-                    pointer-events: none;
-                }
 
                 .modal {
                     position: absolute;
                     top: 100%;
                     left: 0;
                     width: 240px;
-                    padding: 1em;
+                    padding: .3em;
                     border-radius: 10px;
                     background: white;
                     box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
@@ -610,11 +610,6 @@ import MNGDateUtils from "./mangodate.js"
                     }
                 }
 
-                .modal .close-button {
-                    position: absolute;
-                    right: 1em;
-                    top: .5em;
-                }
                 .modal-open {
                     display: block!important;
                 }
@@ -651,23 +646,32 @@ import MNGDateUtils from "./mangodate.js"
 
         render() {
             this.shadowRoot.append(this.getStyle());
-            //this.setAttribute("header", this.header);
             // add background shroud to darken screen and wrapp modal popup
             const shroud = document.createElement("div");
             shroud.classList.add("modal-shroud");
             this.shadowRoot.appendChild(shroud);
-            // create modal popup
+            // create modal popup and insert it into shroud
             const popup = document.createElement("div");
             popup.classList.add("modal");
             shroud.appendChild(popup);
-            // create popup top right close button
+            // create header 
+            const hdr = document.createElement("div");
+            hdr.classList.add("mng-two-btn-header");
+            // icon left
+            const iconSpan = document.createElement("span");
+            iconSpan.classList.add("mng-round-btn", "mng-btn-disk", "material-icons");
+            iconSpan.textContent = "person";
+            hdr.appendChild(iconSpan);
+            // header caption
+            const headerCaption = document.createElement("h3");
+            headerCaption.textContent = "HEADER";
+            hdr.appendChild(headerCaption);
+            // close button
             this.closeBtn = new MNGRoundBtn();
-            this.closeBtn.classList.add("close-button");
             this.closeBtn.setAttribute("icon", "close");
-            popup.appendChild(this.closeBtn);
-            // create header
-            const header = document.createElement("h3");
-            popup.appendChild(header);
+            hdr.appendChild(this.closeBtn);
+            // append header to popup
+            popup.appendChild(hdr);
         }
 
     }
