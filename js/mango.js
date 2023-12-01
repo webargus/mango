@@ -5,7 +5,7 @@ import MNGDateUtils from "./mangodate.js"
 
     class MNGGlobalBase extends HTMLElement {
 
-        globalStyles = `
+        static globalStyles = `
             @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300');
             /* material icons */
             @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
@@ -31,7 +31,7 @@ import MNGDateUtils from "./mangodate.js"
         render() {
             this.shadowRoot.innerHTML = `
             <style>
-            ${this.globalStyles}
+            ${MNGGlobalBase.globalStyles}
             </style>
             `;
         }
@@ -294,7 +294,6 @@ import MNGDateUtils from "./mangodate.js"
         btnLeft;
         btnRight;
         header;
-        fontFamily;
         calGrid;
         callback = null;
 
@@ -308,7 +307,6 @@ import MNGDateUtils from "./mangodate.js"
             super();
             super.render();
             this.callback = callback;
-            this.fontFamily = "Roboto, sans-serif";
             this.goNextMonth = this.goNextMonth.bind(this);         // crashes unless we bind these methods to 'this'
             this.goPreviousMonth = this.goPreviousMonth.bind(this);
             this.dateCallback = this.dateCallback.bind(this);
@@ -329,7 +327,6 @@ import MNGDateUtils from "./mangodate.js"
                     border: 1px solid var(--background-dark, #C0C0C0);
                     padding: 1em;
                     min-width: 12em;
-                    font-family: ${this.fontFamily};
                     display: flex;
                     flex-direction: column;
                     justify-items: center;
@@ -594,7 +591,7 @@ import MNGDateUtils from "./mangodate.js"
         getStyle() {
             const style = document.createElement("style");
             style.textContent = `
-                ${globalStyles}
+                ${MNGGlobalBase.globalStyles}
 
                 .modal {
                     position: absolute;
