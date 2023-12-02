@@ -3,37 +3,33 @@ import MNGDateUtils from "./mangodate.js"
 
 (_ => {
 
-    class MNGGlobalBase extends HTMLElement {
+    // see https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
 
-        static globalStyles = `
-            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300');
-            /* material icons */
-            @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+    const globalStyles = `
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300');
+    /* material icons */
+    @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
-            .mng-two-btn-header {
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-                background-color: var(--background-light);
-                border-radius: 10px;
-                padding: 0 .3em;
-                max-height: 2.6em;
-            }
-        `;
+    .mng-two-btn-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--background-light);
+        border-radius: 10px;
+        padding: 0 .3em;
+        max-height: 2.6em;
+    }
+`;
+
+class MNGGlobalBase extends HTMLElement {
+
+        static sheet = new CSSStyleSheet();
 
         constructor() {
             super();
-            this.attachShadow({mode: 'open'});
-            this.render();
-        }
-
-        render() {
-            this.shadowRoot.innerHTML = `
-            <style>
-            ${MNGGlobalBase.globalStyles}
-            </style>
-            `;
+            MNGGlobalBase.sheet.replaceSync(globalStyles);
+            this.attachShadow({mode: 'open'}).adoptedStyleSheets = [MNGGlobalBase.sheet];
         }
     }
     
@@ -47,7 +43,6 @@ import MNGDateUtils from "./mangodate.js"
         constructor() {
             super();
             this.icon = this.getAttribute("icon") ?? this.icon;
-            super.render();
             this.render();
         }
 
