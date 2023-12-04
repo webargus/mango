@@ -3,33 +3,56 @@ import MNGDateUtils from "./mangodate.js"
 
 (_ => {
 
-    // see https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
+    class MNGGlobalBase extends HTMLElement {
 
-    const globalStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300');
-    /* material icons */
-    @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
-
-    .mng-two-btn-header {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        background-color: var(--background-light);
-        border-radius: 10px;
-        padding: 0 .3em;
-        max-height: 2.6em;
-    }
-`;
-
-class MNGGlobalBase extends HTMLElement {
-
-        static sheet = new CSSStyleSheet();
 
         constructor() {
             super();
-            MNGGlobalBase.sheet.replaceSync(globalStyles);
-            this.attachShadow({mode: 'open'}).adoptedStyleSheets = [MNGGlobalBase.sheet];
+            const sheet = new CSSStyleSheet();
+
+            const globalStyles = `
+                /*
+                * For self-hosting fonts, see
+                * https://developers.google.com/fonts/docs/material_symbols#self-hosting_the_font
+                */
+               
+                @font-face {
+                    font-family: 'Material Symbols Outlined';
+                    font-style: normal;
+                    src: url(http://localhost/vscode/mango/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].ttf) format('ttf');
+                }
+
+                .material-symbols-outlined {
+                    font-family: 'Material Symbols Outlined';
+                    font-weight: normal;
+                    font-style: normal;
+                    font-size: 24px;  /* Preferred icon size */
+                    display: inline-block;
+                    line-height: 1;
+                    text-transform: none;
+                    letter-spacing: normal;
+                    word-wrap: normal;
+                    white-space: nowrap;
+                    direction: ltr;
+                }
+
+                .mng-two-btn-header {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-between;
+                    align-items: center;
+                    background-color: var(--background-light);
+                    border-radius: 10px;
+                    padding: 0 .3em;
+                    max-height: 2.6em;
+                }
+            `;
+            try {
+                sheet.replaceSync(globalStyles);
+                this.attachShadow({mode: 'open'}).adoptedStyleSheets = [sheet];
+            } catch(exception) {
+                console.log(exception);
+            }
         }
     }
     
@@ -75,7 +98,7 @@ class MNGGlobalBase extends HTMLElement {
             super.shadowRoot.append(style);
 
             const span = document.createElement("span");
-            span.classList.add("mng-round-btn", "mng-btn-disk", "material-icons");
+            span.classList.add("mng-round-btn", "mng-btn-disk", "material-symbols-outlined");
             span.textContent = this.icon;
             super.shadowRoot.appendChild(span);
         }
@@ -100,7 +123,6 @@ class MNGGlobalBase extends HTMLElement {
 
         constructor() {
             super();
-            super.render();
             this.render();
         }
 
@@ -300,7 +322,6 @@ class MNGGlobalBase extends HTMLElement {
          */
         constructor(callback = null) {
             super();
-            super.render();
             this.callback = callback;
             this.goNextMonth = this.goNextMonth.bind(this);         // crashes unless we bind these methods to 'this'
             this.goPreviousMonth = this.goPreviousMonth.bind(this);
