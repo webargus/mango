@@ -5,51 +5,44 @@ import MNGDateUtils from "./mangodate.js"
 
     class MNGGlobalBase extends HTMLElement {
 
+        static sheet = new CSSStyleSheet();
+
+        static globalStyles = `
+           /*
+            see https://developers.google.com/fonts/docs/material_symbols#self-hosting_the_font
+            */
+
+            .material-symbols-outlined {
+                font-family: 'Material Symbols Outlined';
+                font-weight: normal;
+                font-style: normal;
+                font-size: 24px;  /* Preferred icon size */
+                display: inline-block;
+                line-height: 1;
+                text-transform: none;
+                letter-spacing: normal;
+                word-wrap: normal;
+                white-space: nowrap;
+                direction: ltr;
+            }
+
+            .mng-two-btn-header {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                background-color: var(--background-light);
+                border-radius: 10px;
+                padding: 0 .3em;
+                max-height: 2.6em;
+            }
+        `;
 
         constructor() {
             super();
-            const sheet = new CSSStyleSheet();
-
-            const globalStyles = `
-                /*
-                * For self-hosting fonts, see
-                * https://developers.google.com/fonts/docs/material_symbols#self-hosting_the_font
-                */
-               
-                @font-face {
-                    font-family: 'Material Symbols Outlined';
-                    font-style: normal;
-                    src: url(http://localhost/vscode/mango/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].ttf) format('ttf');
-                }
-
-                .material-symbols-outlined {
-                    font-family: 'Material Symbols Outlined';
-                    font-weight: normal;
-                    font-style: normal;
-                    font-size: 24px;  /* Preferred icon size */
-                    display: inline-block;
-                    line-height: 1;
-                    text-transform: none;
-                    letter-spacing: normal;
-                    word-wrap: normal;
-                    white-space: nowrap;
-                    direction: ltr;
-                }
-
-                .mng-two-btn-header {
-                    display: flex;
-                    flex-direction: row;
-                    justify-content: space-between;
-                    align-items: center;
-                    background-color: var(--background-light);
-                    border-radius: 10px;
-                    padding: 0 .3em;
-                    max-height: 2.6em;
-                }
-            `;
             try {
-                sheet.replaceSync(globalStyles);
-                this.attachShadow({mode: 'open'}).adoptedStyleSheets = [sheet];
+                MNGGlobalBase.sheet.replaceSync(MNGGlobalBase.globalStyles);
+                this.attachShadow({mode: 'open'}).adoptedStyleSheets = [MNGGlobalBase.sheet];
             } catch(exception) {
                 console.log(exception);
             }
