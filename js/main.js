@@ -62,6 +62,9 @@ onload = _ => {
         console.log(date);
     };
 
+    const modalOk = document.querySelector("mng-modalok");
+    // modalOk.setHeader("Modal OK header");
+
 }
 
 

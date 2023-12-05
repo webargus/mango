@@ -3,8 +3,8 @@ import MNGDateUtils from "./mangodate.js"
 
 (_ => {
 
-    class MNGGlobalBase extends HTMLElement {
-
+    class MNGStyleSheet {
+        
         static sheet = new CSSStyleSheet();
 
         static globalStyles = `
@@ -39,10 +39,24 @@ import MNGDateUtils from "./mangodate.js"
         `;
 
         constructor() {
+            MNGStyleSheet.sheet.replaceSync(MNGStyleSheet.globalStyles);
+        }
+
+        getSheet() {
+            return MNGStyleSheet.sheet;
+        }
+   }
+
+    class MNGGlobalBase extends HTMLElement {
+        
+        // create a static instance of the MNGStyleSheet class to avoid creating multiple MNGStyleSheet
+        // objects as the classes inheriting from MNGGlobalBase call its constructor
+        static sheet = new MNGStyleSheet();
+
+        constructor() {
             super();
             try {
-                MNGGlobalBase.sheet.replaceSync(MNGGlobalBase.globalStyles);
-                this.attachShadow({mode: 'open'}).adoptedStyleSheets = [MNGGlobalBase.sheet];
+                this.attachShadow({mode: 'open'}).adoptedStyleSheets = [MNGGlobalBase.sheet.getSheet()];
             } catch(exception) {
                 console.log(exception);
             }
@@ -612,7 +626,7 @@ import MNGDateUtils from "./mangodate.js"
                     /*  set modal height 4em smaller than view height
                     when view height smaller than default modal height;
                     make modal scrollable when it happens */
-                    overflow: auto;
+                    /* overflow: auto; */ /* blurrs/focus header when close btn mouseover */
                     pointer-events: auto;
                     max-height: calc(100vh - 4em);
                 }
@@ -657,11 +671,11 @@ import MNGDateUtils from "./mangodate.js"
                     cursor: pointer;
                 }
             `;
-            return style
+            return style;
         }
 
-        connectedCallback() {
-            this.setAttribute("header", "Modal OK");
+        setHeader(header) {
+            this.setAttribute("header", header);
         }
 
         render() {
@@ -684,7 +698,7 @@ import MNGDateUtils from "./mangodate.js"
             hdr.appendChild(iconSpan);
             // header caption
             const headerCaption = document.createElement("h3");
-            headerCaption.textContent = "HEADER";
+            headerCaption.textContent = this.getAttribute("header") || "HEADER";
             hdr.appendChild(headerCaption);
             // close button
             this.closeBtn = new MNGRoundBtn();
