@@ -64,6 +64,7 @@ onload = _ => {
 
     const modalOk = document.querySelector("mng-modalok");
     // modalOk.setHeader("Modal OK header");
+    modalOk.setContent("This is a test");
 
 }
 

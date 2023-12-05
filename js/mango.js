@@ -37,7 +37,11 @@ import MNGDateUtils from "./mangodate.js"
                 max-height: 2.6em;
             }
         `;
-
+        
+        /*
+            Create a single object from this class as a static member of the class
+            that is going to use it (MNGGlobalBase)
+        */
         constructor() {
             MNGStyleSheet.sheet.replaceSync(MNGStyleSheet.globalStyles);
         }
@@ -50,7 +54,7 @@ import MNGDateUtils from "./mangodate.js"
     class MNGGlobalBase extends HTMLElement {
         
         // create a static instance of the MNGStyleSheet class to avoid creating multiple MNGStyleSheet
-        // objects as the classes inheriting from MNGGlobalBase call its constructor
+        // objects as the classes inheriting from MNGGlobalBase call this constructor
         static sheet = new MNGStyleSheet();
 
         constructor() {
@@ -594,6 +598,7 @@ import MNGDateUtils from "./mangodate.js"
     class MNGModalOk extends MNGGlobalBase {
 
         closeBtn;
+        contentSlot;
 
         constructor() {
             super();
@@ -661,6 +666,21 @@ import MNGDateUtils from "./mangodate.js"
                     display: none;
                 }
 
+                .content-flex {
+                    display: flex;
+                    align-items: center;
+                }
+
+                .content-flex > :first-child {
+                    font-size: 5em;
+                    color: darkorange;
+                }
+                
+                .content-flex > :last-child {
+                    text-align: left;
+                    padding: .5em;
+                }
+
                 .modal .cancel-button, .ok-button {
                     width: 6em;
                     background: #193b99;
@@ -706,6 +726,31 @@ import MNGDateUtils from "./mangodate.js"
             hdr.appendChild(this.closeBtn);
             // append header to popup
             popup.appendChild(hdr);
+            // create content slot
+            this.contentSlot = document.createElement("div");
+            popup.appendChild(this.contentSlot);
+        }
+
+        setContent(content) {
+            // clear content slot
+            this.contentSlot.innerHTML = "";
+            // 
+            switch(typeof content) {
+                case "object":
+                    this.contentSlot.appendChild(content);
+                    break;
+                case "string":
+                    this.contentSlot.classList.add("content-flex");
+                    var block = document.createElement("span");
+                    block.classList.add("mng-round-btn", "mng-btn-disk", "material-symbols-outlined");
+                    block.textContent = "warning";
+                    this.contentSlot.appendChild(block);
+                    block = document.createElement("span");
+                    block.textContent = content;
+                    this.contentSlot.appendChild(block);
+                    break;
+
+            }
         }
 
     }
