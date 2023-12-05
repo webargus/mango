@@ -577,13 +577,12 @@ import MNGDateUtils from "./mangodate.js"
     /*
     *   MNGModalOk
     */
-    class MNGModalOk extends HTMLElement {
+    class MNGModalOk extends MNGGlobalBase {
 
         closeBtn;
 
         constructor() {
             super();
-            this.attachShadow({mode: 'open'});
             this.render();
         }
 
@@ -600,8 +599,6 @@ import MNGDateUtils from "./mangodate.js"
         getStyle() {
             const style = document.createElement("style");
             style.textContent = `
-                ${MNGGlobalBase.globalStyles}
-
                 .modal {
                     position: absolute;
                     top: 100%;
@@ -682,7 +679,7 @@ import MNGDateUtils from "./mangodate.js"
             hdr.classList.add("mng-two-btn-header");
             // icon left
             const iconSpan = document.createElement("span");
-            iconSpan.classList.add("mng-round-btn", "mng-btn-disk", "material-icons");
+            iconSpan.classList.add("mng-round-btn", "mng-btn-disk", "material-symbols-outlined");
             iconSpan.textContent = "person";
             hdr.appendChild(iconSpan);
             // header caption
