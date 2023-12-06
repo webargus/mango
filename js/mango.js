@@ -597,11 +597,13 @@ import MNGDateUtils from "./mangodate.js"
     */
     class MNGModalOk extends MNGGlobalBase {
 
-        closeBtn;
         contentSlot;
+        shroud;
 
         constructor() {
             super();
+            this.closeModal = this.closeModal.bind(this);
+            this.openModal = this.openModal.bind(this);
             this.render();
         }
 
@@ -666,6 +668,13 @@ import MNGDateUtils from "./mangodate.js"
                     display: none;
                 }
 
+                .mng-two-btn-header h3 {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    text-wrap: nowrap;
+                    padding: 0 .25em;
+                }
+
                 .content-flex {
                     display: flex;
                     align-items: center;
@@ -681,15 +690,17 @@ import MNGDateUtils from "./mangodate.js"
                     padding: .5em;
                 }
 
-                .modal .cancel-button, .ok-button {
-                    width: 6em;
-                    background: #193b99;
-                    color: white;
+                .modal .ok-button, .cancel-button {
+                    min-width: 6em;
+                    background: var(--background-dark);
+                    color: var(--front-dark);
+                    font-size: 1em;
+                    /* opacity: .8; */
                     border: 0;
-                    padding: .8em;
-                    border-radius: 1em;
+                    padding: .5em;
+                    border-radius: .5em;
                     cursor: pointer;
-                }
+                    margin: .5em;                }
             `;
             return style;
         }
@@ -701,13 +712,13 @@ import MNGDateUtils from "./mangodate.js"
         render() {
             this.shadowRoot.append(this.getStyle());
             // add background shroud to darken screen and wrapp modal popup
-            const shroud = document.createElement("div");
-            shroud.classList.add("modal-shroud");
-            this.shadowRoot.appendChild(shroud);
+            this.shroud = document.createElement("div");
+            this.shroud.classList.add("modal-shroud");
+            this.shadowRoot.appendChild(this.shroud);
             // create modal popup and insert it into shroud
             const popup = document.createElement("div");
             popup.classList.add("modal");
-            shroud.appendChild(popup);
+            this.shroud.appendChild(popup);
             // create header 
             const hdr = document.createElement("div");
             hdr.classList.add("mng-two-btn-header");
@@ -721,14 +732,21 @@ import MNGDateUtils from "./mangodate.js"
             headerCaption.textContent = this.getAttribute("header") || "HEADER";
             hdr.appendChild(headerCaption);
             // close button
-            this.closeBtn = new MNGRoundBtn();
-            this.closeBtn.setAttribute("icon", "close");
-            hdr.appendChild(this.closeBtn);
+            var button = new MNGRoundBtn();
+            button.setAttribute("icon", "close");
+            button.addEventListener("click", this.closeModal);
+            hdr.appendChild(button);
             // append header to popup
             popup.appendChild(hdr);
             // create content slot
             this.contentSlot = document.createElement("div");
             popup.appendChild(this.contentSlot);
+            // create ok button
+            button = document.createElement("button");
+            button.classList.add("ok-button");
+            button.textContent = "OK";
+            button.addEventListener("click", this.closeModal);
+            popup.appendChild(button);
         }
 
         setContent(content) {
@@ -751,6 +769,16 @@ import MNGDateUtils from "./mangodate.js"
                     break;
 
             }
+        }
+
+        openModal() {
+            this.shroud.classList.add("modal-open");
+            document.body.classList.add("freeze");        
+        }
+
+        closeModal() {
+            this.shroud.classList.remove("modal-open");
+            document.body.classList.remove("freeze");
         }
 
     }
