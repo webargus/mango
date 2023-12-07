@@ -117,6 +117,61 @@ import MNGDateUtils from "./mangodate.js"
     }
     
     customElements.define('mng-round-btn', MNGRoundBtn);
+
+    /**
+     *  MNGButton
+     */
+    class MNGButton extends MNGGlobalBase {
+
+        caption = "";
+
+        constructor() {
+            super();
+            this.caption = this.getAttribute("caption") ?? this.caption;
+            this.render();
+        }
+
+        static get observedAttributes() { return ['caption']; }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            if(name == 'caption') {
+                setTimeout(_ => {
+                    super.shadowRoot.querySelector("button").textContent = newValue;
+                });
+            }
+        }
+
+        render() {
+            const style = document.createElement("style");
+
+            style.textContent = `
+                .mng-button {
+                    min-width: 6em;
+                    background: var(--background-dark);
+                    color: var(--front-dark);
+                    font-size: 1em;
+                    opacity: .8;
+                    border: 0;
+                    padding: .5em;
+                    border-radius: .5em;
+                    cursor: pointer;
+                    margin: .5em;
+                }
+
+                .mng-button:hover {
+                    opacity: 1!important;
+                }
+            `;
+            super.shadowRoot.appendChild(style);
+
+            const button = document.createElement("button");
+            button.classList.add("mng-button");
+            button.textContent = this.caption;
+            super.shadowRoot.appendChild(button);
+        }
+    }
+    
+    customElements.define("mng-button", MNGButton);
     
     /**
      *      MNGAccordeon
@@ -595,14 +650,14 @@ import MNGDateUtils from "./mangodate.js"
     /*
     *   MNGModalOk
     */
-    class MNGModalOk extends MNGGlobalBase {
+    class MNGModalOkCancel extends MNGGlobalBase {
 
         contentSlot;
         shroud;
 
         constructor() {
             super();
-            this.closeModal = this.closeModal.bind(this);
+            this.cancelModal = this.cancelModal.bind(this);
             this.openModal = this.openModal.bind(this);
             this.render();
         }
@@ -672,6 +727,7 @@ import MNGDateUtils from "./mangodate.js"
                     overflow: hidden;
                     text-overflow: ellipsis;
                     text-wrap: nowrap;
+                    white-space: nowrap;
                     padding: 0 .25em;
                 }
 
@@ -689,18 +745,6 @@ import MNGDateUtils from "./mangodate.js"
                     text-align: left;
                     padding: .5em;
                 }
-
-                .modal .ok-button, .cancel-button {
-                    min-width: 6em;
-                    background: var(--background-dark);
-                    color: var(--front-dark);
-                    font-size: 1em;
-                    /* opacity: .8; */
-                    border: 0;
-                    padding: .5em;
-                    border-radius: .5em;
-                    cursor: pointer;
-                    margin: .5em;                }
             `;
             return style;
         }
@@ -734,7 +778,7 @@ import MNGDateUtils from "./mangodate.js"
             // close button
             var button = new MNGRoundBtn();
             button.setAttribute("icon", "close");
-            button.addEventListener("click", this.closeModal);
+            button.addEventListener("click", this.cancelModal);
             hdr.appendChild(button);
             // append header to popup
             popup.appendChild(hdr);
@@ -742,10 +786,9 @@ import MNGDateUtils from "./mangodate.js"
             this.contentSlot = document.createElement("div");
             popup.appendChild(this.contentSlot);
             // create ok button
-            button = document.createElement("button");
-            button.classList.add("ok-button");
-            button.textContent = "OK";
-            button.addEventListener("click", this.closeModal);
+            button = new MNGButton();
+            button.setAttribute("caption", "OK");
+            button.addEventListener("click", this.cancelModal);
             popup.appendChild(button);
         }
 
@@ -776,14 +819,14 @@ import MNGDateUtils from "./mangodate.js"
             document.body.classList.add("freeze");        
         }
 
-        closeModal() {
+        cancelModal() {
             this.shroud.classList.remove("modal-open");
             document.body.classList.remove("freeze");
         }
 
     }
 
-    customElements.define("mng-modalok", MNGModalOk);
+    customElements.define("mng-modalokcancel", MNGModalOkCancel);
 })();
 
 
