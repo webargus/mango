@@ -648,28 +648,23 @@ import MNGDateUtils from "./mangodate.js"
     customElements.define("mng-select", MNGSelect);
 
     /*
-    *   MNGModalOk
+    *   MNGModalBase
     */
-    class MNGModalOkCancel extends MNGGlobalBase {
+    class MNGModalBase extends MNGGlobalBase {
 
         contentSlot;
         shroud;
+        popup;
+        okBtn;
 
         constructor() {
             super();
+            // just create ok button but don't append it yet, leave it up to inherited classes to do it
+            this.okBtn = new MNGButton();
+            this.okBtn.setAttribute("caption", "OK");
             this.cancelModal = this.cancelModal.bind(this);
             this.openModal = this.openModal.bind(this);
             this.render();
-        }
-
-        static get observedAttributes() { return ['header']; }
-
-        attributeChangedCallback(name, oldValue, newValue) {
-            if(name == 'header') {
-                setTimeout(_ => {
-                    this.shadowRoot.querySelector("h3").textContent = newValue;
-                });
-            }
         }
 
         getStyle() {
@@ -731,17 +726,18 @@ import MNGDateUtils from "./mangodate.js"
                     padding: 0 .25em;
                 }
 
-                .content-flex {
+                .row-flex {
                     display: flex;
                     align-items: center;
+                    justify-content: space-around;
                 }
 
-                .content-flex > :first-child {
+                .row-flex.content > :first-child {
                     font-size: 5em;
                     color: darkorange;
                 }
                 
-                .content-flex > :last-child {
+                .row-flex.content > :last-child {
                     text-align: left;
                     padding: .5em;
                 }
@@ -760,9 +756,9 @@ import MNGDateUtils from "./mangodate.js"
             this.shroud.classList.add("modal-shroud");
             this.shadowRoot.appendChild(this.shroud);
             // create modal popup and insert it into shroud
-            const popup = document.createElement("div");
-            popup.classList.add("modal");
-            this.shroud.appendChild(popup);
+            this.popup = document.createElement("div");
+            this.popup.classList.add("modal");
+            this.shroud.appendChild(this.popup);
             // create header 
             const hdr = document.createElement("div");
             hdr.classList.add("mng-two-btn-header");
@@ -776,20 +772,15 @@ import MNGDateUtils from "./mangodate.js"
             headerCaption.textContent = this.getAttribute("header") || "HEADER";
             hdr.appendChild(headerCaption);
             // close button
-            var button = new MNGRoundBtn();
+            const button = new MNGRoundBtn();
             button.setAttribute("icon", "close");
             button.addEventListener("click", this.cancelModal);
             hdr.appendChild(button);
             // append header to popup
-            popup.appendChild(hdr);
+            this.popup.appendChild(hdr);
             // create content slot
             this.contentSlot = document.createElement("div");
-            popup.appendChild(this.contentSlot);
-            // create ok button
-            button = new MNGButton();
-            button.setAttribute("caption", "OK");
-            button.addEventListener("click", this.cancelModal);
-            popup.appendChild(button);
+            this.popup.appendChild(this.contentSlot);
         }
 
         setContent(content) {
@@ -801,7 +792,7 @@ import MNGDateUtils from "./mangodate.js"
                     this.contentSlot.appendChild(content);
                     break;
                 case "string":
-                    this.contentSlot.classList.add("content-flex");
+                    this.contentSlot.classList.add("row-flex", "content");
                     var block = document.createElement("span");
                     block.classList.add("mng-round-btn", "mng-btn-disk", "material-symbols-outlined");
                     block.textContent = "warning";
@@ -822,6 +813,87 @@ import MNGDateUtils from "./mangodate.js"
         cancelModal() {
             this.shroud.classList.remove("modal-open");
             document.body.classList.remove("freeze");
+        }
+    }
+
+    /**
+     *  MNGModalOk
+     */
+    class MNGModalOk extends MNGModalBase {
+
+        constructor() {
+            super();
+            this.render();
+        }
+
+        static get observedAttributes() { return ['header']; }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            if(name == 'header') {
+                setTimeout(_ => {
+                    this.shadowRoot.querySelector("h3").textContent = newValue;
+                });
+            }
+        }
+
+        render() {
+            super.okBtn.addEventListener("click", super.cancelModal);
+            super.popup.appendChild(super.okBtn);
+        }
+    }
+
+    customElements.define("mng-modalok", MNGModalOk);
+
+    /**
+     * MNGModalOkCancel
+     */
+    class MNGModalOkCancel extends MNGModalBase {
+
+        callback;
+        okBtn;
+
+        constructor(callback = null) {
+            super();
+            this.callback = callback ?? this.getAttribute("callback");
+            this.confirmModal = this.confirmModal.bind(this);
+            this.render();
+        }
+
+        static get observedAttributes() { return ['callback']; }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            if(name == 'callback') {
+                setTimeout(_ => {
+                    this.okBtn.removeEventListener("click", this.callback);
+                    if(newValue) {
+                        this.callback = newValue;
+                        this.okBtn.addEventListener("click", this.callback);
+                    }
+                });
+            }
+        }
+
+        render() {
+            // create bottom button wrapper
+            const wrapDiv = document.createElement("div");
+            wrapDiv.classList.add("row-flex");
+            super.okBtn.addEventListener("click", this.callback ? this.confirmModal : super.cancelModal);
+            // create cancel button
+            const cancelBtn = new MNGButton();
+            cancelBtn.setAttribute("caption", "Cancel");
+            cancelBtn.addEventListener("click", super.cancelModal);
+            wrapDiv.appendChild(cancelBtn);
+            // add ok button to wrapper
+            wrapDiv.appendChild(super.okBtn);
+            // add wrapper to modal popup
+            super.popup.appendChild(wrapDiv);
+        }
+
+        confirmModal() {
+            super.cancelModal();
+            if(this.callback) {
+                this.callback();
+            }
         }
 
     }

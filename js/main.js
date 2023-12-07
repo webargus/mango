@@ -61,11 +61,17 @@ onload = _ => {
     calendar.callback = date => {
         console.log(date);
     };
-
-    const modalOk = document.querySelector("mng-modalokcancel");
+    
+    const modalOk = document.querySelector("mng-modalok");
     modalOk.setHeader("Modal OK header test");
     modalOk.setContent("This is a test; warning messages will be displayed here...");
 
+    const modalCallback = _ => {
+        alert("Modal callback called successfuly");
+    };
+    const modalCancelOk = document.createElement("mng-modalokcancel");
+    modalCancelOk.setAttribute("callback", modalCallback);
+    document.body.appendChild(modalCancelOk);
 }
 
 
