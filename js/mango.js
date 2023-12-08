@@ -659,12 +659,8 @@ import MNGDateUtils from "./mangodate.js"
 
         constructor() {
             super();
-            // just create ok button but don't append it yet, leave it up to inherited classes to do it
-            this.okBtn = new MNGButton();
-            this.okBtn.setAttribute("caption", "OK");
             this.cancelModal = this.cancelModal.bind(this);
             this.openModal = this.openModal.bind(this);
-            this.render();
         }
 
         getStyle() {
@@ -781,6 +777,9 @@ import MNGDateUtils from "./mangodate.js"
             // create content slot
             this.contentSlot = document.createElement("div");
             this.popup.appendChild(this.contentSlot);
+            // just create ok button but don't append it yet, leave it up to inherited classes to do it
+            this.okBtn = new MNGButton();
+            this.okBtn.setAttribute("caption", "OK");
         }
 
         setContent(content) {
@@ -823,6 +822,7 @@ import MNGDateUtils from "./mangodate.js"
 
         constructor() {
             super();
+            super.render();
             this.render();
         }
 
@@ -837,8 +837,8 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         render() {
-            super.okBtn.addEventListener("click", super.cancelModal);
-            super.popup.appendChild(super.okBtn);
+            this.okBtn.addEventListener("click", this.cancelModal);
+            this.popup.appendChild(this.okBtn);
         }
     }
 
@@ -849,48 +849,39 @@ import MNGDateUtils from "./mangodate.js"
      */
     class MNGModalOkCancel extends MNGModalBase {
 
-        callback;
-        okBtn;
+        callback = null;
 
-        constructor(callback = null) {
+        constructor() {
             super();
-            this.callback = callback ?? this.getAttribute("callback");
             this.confirmModal = this.confirmModal.bind(this);
+            super.render();
             this.render();
         }
 
-        static get observedAttributes() { return ['callback']; }
-
-        attributeChangedCallback(name, oldValue, newValue) {
-            if(name == 'callback') {
-                setTimeout(_ => {
-                    this.okBtn.removeEventListener("click", this.callback);
-                    if(newValue) {
-                        this.callback = newValue;
-                        this.okBtn.addEventListener("click", this.callback);
-                    }
-                });
-            }
+        setCallback(callback) {
+            this.okBtn.removeEventListener("click", this.callback);
+            this.callback = callback;
+            this.okBtn.addEventListener("click", this.callback);
         }
 
         render() {
             // create bottom button wrapper
             const wrapDiv = document.createElement("div");
             wrapDiv.classList.add("row-flex");
-            super.okBtn.addEventListener("click", this.callback ? this.confirmModal : super.cancelModal);
+            this.okBtn.addEventListener("click", this.callback ? this.confirmModal : this.cancelModal);
             // create cancel button
             const cancelBtn = new MNGButton();
             cancelBtn.setAttribute("caption", "Cancel");
-            cancelBtn.addEventListener("click", super.cancelModal);
+            cancelBtn.addEventListener("click", this.cancelModal);
             wrapDiv.appendChild(cancelBtn);
             // add ok button to wrapper
-            wrapDiv.appendChild(super.okBtn);
+            wrapDiv.appendChild(this.okBtn);
             // add wrapper to modal popup
-            super.popup.appendChild(wrapDiv);
+            this.popup.appendChild(wrapDiv);
         }
 
         confirmModal() {
-            super.cancelModal();
+            this.cancelModal();
             if(this.callback) {
                 this.callback();
             }

@@ -1,6 +1,4 @@
 
-import MNGDateUtils from "./mangodate.js"
-
 onload = _ => {
 
     // console.log(dateUtils.isLeapYear("2020") ? "true" : "false");
@@ -69,9 +67,8 @@ onload = _ => {
     const modalCallback = _ => {
         alert("Modal callback called successfuly");
     };
-    const modalCancelOk = document.createElement("mng-modalokcancel");
-    modalCancelOk.setAttribute("callback", modalCallback);
-    document.body.appendChild(modalCancelOk);
+    const modalCancelOk = document.querySelector("mng-modalokcancel");
+    modalCancelOk.setCallback(modalCallback);
 }
 
 
