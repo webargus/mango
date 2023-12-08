@@ -656,11 +656,22 @@ import MNGDateUtils from "./mangodate.js"
         shroud;
         popup;
         okBtn;
+        static modals = 0;
 
         constructor() {
             super();
             this.cancelModal = this.cancelModal.bind(this);
             this.openModal = this.openModal.bind(this);
+        }
+
+        static get observedAttributes() { return ['header']; }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            if(name == 'header') {
+                setTimeout(_ => {
+                    this.shadowRoot.querySelector("h3").textContent = newValue;
+                });
+            }
         }
 
         getStyle() {
@@ -805,13 +816,25 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         openModal() {
+            if(this.shroud.classList.contains("modal-open")) {
+                // modal already open, just return
+                return;
+            }
+            MNGModalBase.modals++;
             this.shroud.classList.add("modal-open");
+            // lock page scrolling
             document.body.classList.add("freeze");        
         }
 
         cancelModal() {
-            this.shroud.classList.remove("modal-open");
-            document.body.classList.remove("freeze");
+            if(this.shroud.classList.contains("modal-open")) {
+                this.shroud.classList.remove("modal-open");
+                MNGModalBase.modals--;
+                if(MNGModalBase.modals == 0) {
+                    // no more modals left open, unlock page scrolling
+                    document.body.classList.remove("freeze");
+                }
+            }
         }
     }
 
@@ -824,16 +847,6 @@ import MNGDateUtils from "./mangodate.js"
             super();
             super.render();
             this.render();
-        }
-
-        static get observedAttributes() { return ['header']; }
-
-        attributeChangedCallback(name, oldValue, newValue) {
-            if(name == 'header') {
-                setTimeout(_ => {
-                    this.shadowRoot.querySelector("h3").textContent = newValue;
-                });
-            }
         }
 
         render() {
