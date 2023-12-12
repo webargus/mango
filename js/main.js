@@ -68,6 +68,8 @@ onload = _ => {
         alert("Modal callback called successfuly");
     };
     const modalCancelOk = document.querySelector("mng-modalokcancel");
+    modalCancelOk.setHeader("Cancel OK modal");
+    modalCancelOk.setContent("This is a Cancel Ok modal. Would you like to confirm it?");
     modalCancelOk.setCallback(modalCallback);
 }
 
