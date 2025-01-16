@@ -90,6 +90,47 @@ export default class MNGDateUtils {
         return dayNames;
     }
 
+    getCurrLocaleMonthName(lang, length = null) {
+        var monthName = this.currDate.toLocaleString(lang, {month: "long"});
+        return length == null ? monthName : monthName.substring(0, length);
+    }
+
+    getPrevMonthDate() {
+        const month = this.currDate.getMonth();
+        const year = this.currDate.getFullYear();
+        return month > 0 ? new Date(year, month - 1, 1) : new Date(year -1, 11, 1);
+    }
+
+    getNextMonthDate() {
+        const month = this.currDate.getMonth();
+        const year = this.currDate.getFullYear();
+        return month < 11 ? new Date(year, month + 1, 1) : new Date(year + 1, 0, 1);
+    }
+
+    getCalendarWeeks(date = null) {
+        var weekObj = [];
+        const calObj = this.getCalendarObject(date);
+        const allWeeks = calObj.matrix;
+        let isLastWeek = false;
+        let isFirstWeek = false;
+        while (allWeeks.length > 0) {
+            const week = allWeeks.splice(0, 7);
+            isFirstWeek = calObj.firstWeekDay > 0 && weekObj.length == 0;
+            isLastWeek = (week[week.length - 1] < week[0]) && !isFirstWeek;
+            let initDate = isFirstWeek ? this.getPrevMonthDate() : this.currDate;
+            initDate = new Date(initDate.getFullYear(), initDate.getMonth(), week[0]);
+            let finalDate = isLastWeek ? this.getNextMonthDate() : this.currDate;
+            finalDate = new Date(finalDate.getFullYear(), finalDate.getMonth(), week[week.length - 1]);
+            weekObj.push({
+                initDate : initDate,
+                finalDate : finalDate,
+                weekArray : week
+            });
+            if(isLastWeek) break;
+        }
+        return weekObj;
+    }
+
     getCalendarObject(date = null) {
         var date = date ?? this.currDate;
         var calendar = [];
