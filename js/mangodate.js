@@ -109,13 +109,13 @@ export default class MNGDateUtils {
 
     getCalendarWeeks(date = null) {
         var weekObj = [];
-        const calObj = this.getCalendarObject(date);
-        const allWeeks = calObj.matrix;
+        // fetch all weeks in date param
+        const allWeeks = this.getCalendarObject(date).matrix;
         let isLastWeek = false;
         let isFirstWeek = false;
         while (allWeeks.length > 0) {
             const week = allWeeks.splice(0, 7);
-            isFirstWeek = calObj.firstWeekDay > 0 && weekObj.length == 0;
+            isFirstWeek = allWeeks[0] > 1 && weekObj.length == 0;
             isLastWeek = (week[week.length - 1] < week[0]) && !isFirstWeek;
             let initDate = isFirstWeek ? this.getPrevMonthDate() : this.currDate;
             initDate = new Date(initDate.getFullYear(), initDate.getMonth(), week[0]);
