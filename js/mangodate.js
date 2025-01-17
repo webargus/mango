@@ -4,6 +4,7 @@ export default class MNGDateUtils {
 
     currDate;
     weekObjs = [];
+    weekDays = [];
 
     constructor() {
         this.currDate = new Date();
@@ -120,17 +121,35 @@ export default class MNGDateUtils {
         date = date ?? this.currDate;
         const d = date.getDate();
         const day = date.getDay();
-        var wdays = [];
-        const daysInMonth = this.getNumDaysInMonth(date.getFullYear(), date.getMonth());
+        this.weekDays = [];
+        // const daysInMonth = this.getNumDaysInMonth(date.getFullYear(), date.getMonth());
         for(let ix = d - day; ix < d + 7 - day; ix++) {
             // if(ix <= 0 || ix > daysInMonth) {
-            //     wdays.push(new Date(date.getFullYear(), date.getMonth(), ix).getDate());
+            //     this.wdays.push(new Date(date.getFullYear(), date.getMonth(), ix).getDate());
             // } else {
-            //     wdays.push(ix);
+            //     this.wdays.push(ix);
             // }
-            wdays.push(new Date(date.getFullYear(), date.getMonth(), ix));
+            this.weekDays.push(new Date(date.getFullYear(), date.getMonth(), ix));
         }
-        return wdays;
+        return this.weekDays;
+    }
+
+    goNextWeek(date = null) {
+        date = date ?? this.currDate;
+        if(this.weekDays.length == 0) { this.getWeekObj(date); }
+        date = new Date(this.weekDays[6].getFullYear(),
+                        this.weekDays[6].getMonth(),
+                        this.weekDays[6].getDate() + 1);
+        return this.getWeekObj(date);
+    }
+
+    goPrevWeek(date = null) {
+        date = date ?? this.currDate;
+        if(this.weekDays.length == 0) { this.getWeekObj(date); }
+        date = new Date(this.weekDays[0].getFullYear(),
+                        this.weekDays[0].getMonth(),
+                        this.weekDays[0].getDate() - 1);
+        return this.getWeekObj(date);
     }
 
     getCalendarWeeks(date = null) {
