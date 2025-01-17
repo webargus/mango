@@ -3,6 +3,7 @@
 export default class MNGDateUtils {
 
     currDate;
+    weekObjs = [];
 
     constructor() {
         this.currDate = new Date();
@@ -37,12 +38,16 @@ export default class MNGDateUtils {
              // no need to check for month day between jan and dec, both are 31 day months
             dt = new Date(dt.getFullYear() - 1, prevMonth, day);
             if(date == null) { this.currDate = dt;}
+            // update week calendar
+            this.getCalendarWeeks();
             return dt;
         }
         const numDays = this.getNumDaysInMonth(dt.getFullYear(), prevMonth);
         day = day > numDays ? numDays : day;
         dt = new Date(dt.getFullYear(), prevMonth, day);
         if(date == null) { this.currDate = dt;}
+        // update week calendar
+        this.getCalendarWeeks();
         return dt;
     }
 
@@ -56,12 +61,16 @@ export default class MNGDateUtils {
              // no need to check for month day between dec and jan, both are 31 day months
              dt = new Date(dt.getFullYear() + 1, nextMonth, day);
              if(date == null) { this.currDate = dt;}
+             // update week calendar
+             this.getCalendarWeeks();
              return dt;
         }
         const numDays = this.getNumDaysInMonth(dt.getFullYear(), nextMonth);
         day = day > numDays ? numDays : day;
         dt = new Date(dt.getFullYear(), nextMonth, day);
         if(date == null) { this.currDate = dt; }
+        // update week calendar
+        this.getCalendarWeeks();
         return dt;
     }
 
@@ -107,28 +116,45 @@ export default class MNGDateUtils {
         return month < 11 ? new Date(year, month + 1, 1) : new Date(year + 1, 0, 1);
     }
 
+    getWeekObj(date = null) {
+        date = date ?? this.currDate;
+        const d = date.getDate();
+        const day = date.getDay();
+        var wdays = [];
+        const daysInMonth = this.getNumDaysInMonth(date.getFullYear(), date.getMonth());
+        for(let ix = d - day; ix < d + 7 - day; ix++) {
+            // if(ix <= 0 || ix > daysInMonth) {
+            //     wdays.push(new Date(date.getFullYear(), date.getMonth(), ix).getDate());
+            // } else {
+            //     wdays.push(ix);
+            // }
+            wdays.push(new Date(date.getFullYear(), date.getMonth(), ix));
+        }
+        return wdays;
+    }
+
     getCalendarWeeks(date = null) {
-        var weekObj = [];
+        this.weekObjs = [];
         // fetch all weeks in date param
         const allWeeks = this.getCalendarObject(date).matrix;
         let isLastWeek = false;
         let isFirstWeek = false;
         while (allWeeks.length > 0) {
             const week = allWeeks.splice(0, 7);
-            isFirstWeek = allWeeks[0] > 1 && weekObj.length == 0;
+            isFirstWeek = allWeeks[0] > 1 && this.weekObjs.length == 0;
             isLastWeek = (week[week.length - 1] < week[0]) && !isFirstWeek;
             let initDate = isFirstWeek ? this.getPrevMonthDate() : this.currDate;
             initDate = new Date(initDate.getFullYear(), initDate.getMonth(), week[0]);
             let finalDate = isLastWeek ? this.getNextMonthDate() : this.currDate;
             finalDate = new Date(finalDate.getFullYear(), finalDate.getMonth(), week[week.length - 1]);
-            weekObj.push({
+            this.weekObjs.push({
                 initDate : initDate,
                 finalDate : finalDate,
                 weekArray : week
             });
             if(isLastWeek) break;
         }
-        return weekObj;
+        return this.weekObjs;
     }
 
     getCalendarObject(date = null) {

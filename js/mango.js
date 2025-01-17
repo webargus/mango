@@ -485,7 +485,7 @@ import MNGDateUtils from "./mangodate.js"
             weekNames.classList.add("mng-weekdays-grid");
             var row = "";
             this.dateUtils.getLocaleWeekDayNames("pt-br", 3).forEach(wday => {
-                row += `<span>${wday.substring(0, 3)}</span>`;
+                row += `<span>${wday}</span>`;
             });
             weekNames.innerHTML = row;
             wrapper.appendChild(weekNames);
@@ -553,6 +553,194 @@ import MNGDateUtils from "./mangodate.js"
 
     customElements.define("mng-calendar", MNGCalendar);
     
+    /**
+     *  MNGWeekCalendar
+     */
+    class MNGWeekCalendar extends MNGGlobalBase {
+
+        dateUtils;
+        weekObjs;
+        btnLeft;
+        btnRight;
+        header;
+        calGrid;
+        callback = null;
+
+        /**
+         *  See 'this in classes' section at 
+         *  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
+         * 
+         *  binding methods to 'this' avoids fatal 'undefined' errors when calling those methods
+         */
+        constructor(callback = null) {
+            super();
+            this.callback = callback;
+            this.goNextWeek = this.goNextWeek.bind(this);         // crashes unless we bind these methods to 'this'
+            this.goPreviousWeek = this.goPreviousWeek.bind(this);
+            this.dateCallback = this.dateCallback.bind(this);
+        }
+        
+        connectedCallback() {
+            this.render();
+        }
+
+        render() {
+            this.dateUtils = new MNGDateUtils();
+            this.weekObjs = this.dateUtils.getCalendarWeeks();
+            const style = document.createElement("style");
+            style.textContent = `
+
+                .mng-calendar-wrapper {
+                    background-color: var(--background-light, #F0F0F0);
+                    border-radius: .4em;
+                    border: 1px solid var(--background-dark, #C0C0C0);
+                    padding: 1em;
+                    min-width: 12em;
+                    display: flex;
+                    flex-direction: column;
+                    justify-items: center;
+                }
+                .mng-weekdays-grid {
+                    display: grid;
+                    grid-template-columns: repeat(7, 1fr);
+                    gap: 1em;
+                    font-size: small;
+                    margin-top: 1em;
+                    justify-items: center;
+                    background-color: var(--text-background);
+                    padding: .5em;
+                    border-radius: .4em .4em 0 0;
+                }
+                .mng-calendar-grid {
+                    display: grid;
+                    grid-template-columns: repeat(7, 1fr);
+                    gap: 1em;
+                    font-size: small;
+                    justify-items: center;
+                    background-color: var(--text-background);
+                    padding: .5em;
+                    border-radius: 0 0 .4em .4em;
+                    cursor: pointer;
+                }
+                .mng-calendar-grid span {
+                    border-radius: 50%;
+                    width: .8em;
+                    height: .8em;
+                    display: flex;
+                    align-content: center;
+                    justify-content: center;
+                    align-items: center;
+                    padding: .8em;
+                }
+                .mng-calendar-grid span:hover {
+                    color: var(--text-background);
+                    background-color: var(--background-dark);
+                }
+                .mng-calendar-light-day {
+                    color: var(--background-dark);
+                }
+                .mng-calendar-today {
+                    color: var(--tex-background);
+                    background-color: var(--background-light);
+                }
+            `;
+            
+            super.shadowRoot.append(style); 
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("mng-calendar-wrapper");
+
+            const hdr = document.createElement("div");
+            hdr.classList.add("mng-two-btn-header");
+            // arrow left
+            this.btnLeft = document.createElement("mng-round-btn");
+            this.btnLeft.setAttribute("icon", "chevron_left");
+            this.btnLeft.addEventListener("click", this.goPreviousWeek);
+            hdr.appendChild(this.btnLeft);
+            // month, year
+            this.header = document.createElement("div");
+            // this.weekObjs[0][0].initDate.
+            // this.header.textContent = this.dateUtils.formatDate("MMMM de YYYY", "pt-br");
+            hdr.appendChild(this.header);
+            // arrow right
+            this.btnRight = document.createElement("mng-round-btn");
+            this.btnRight.setAttribute("icon", "chevron_right");
+            this.btnRight.addEventListener("click", this.goNextWeek);
+            hdr.appendChild(this.btnRight);
+            // add header with month, year, btn left and btn right
+            wrapper.appendChild(hdr);
+            // add week days
+            const weekNames = document.createElement("div");
+            weekNames.classList.add("mng-weekdays-grid");
+            var row = "";
+            this.dateUtils.getLocaleWeekDayNames("pt-br", 3).forEach(wday => {
+                row += `<span>${wday.substring(0, 3)}</span>`;
+            });
+            weekNames.innerHTML = row;
+            wrapper.appendChild(weekNames);
+
+            this.calGrid = document.createElement("div");
+            this.calGrid.classList.add("mng-calendar-grid");
+            wrapper.appendChild(this.calGrid);
+            this.renderCalendar();
+
+            super.shadowRoot.appendChild(wrapper);
+        }
+
+        renderCalendar() {
+            // clear prev calendar (if any)
+            this.calGrid.innerHTML = '';
+            // add calendar grid
+            const calendar = this.dateUtils.getCalendarObject();
+            calendar.matrix.forEach((day, ix) => {
+                var span = document.createElement("span");
+                if(ix == calendar.todayPos && this.dateUtils.isToday(new Date())) {
+                    span.classList.add("mng-calendar-today");
+                }
+                span.textContent = day;
+                if(ix < calendar.firstWeekDay) {
+                    span.addEventListener("click", e => {
+                        const dt = this.dateUtils.goPreviousMonth(this.dateUtils.getDateObject());
+                        this.dateCallback(e, dt);
+                    });
+                    span.classList.add("mng-calendar-light-day");
+                } else if (ix >= calendar.firstWeekDay + calendar.numDays) {
+                    span.addEventListener("click", e => {
+                        const dt = this.dateUtils.goNextMonth(this.dateUtils.getDateObject());
+                        this.dateCallback(e, dt);
+                    });
+                    span.classList.add("mng-calendar-light-day");
+                } else {
+                    span.addEventListener("click", this.dateCallback);
+                }
+                this.calGrid.appendChild(span);
+            });
+        }
+
+        dateCallback(e, dt = null) {
+            dt = dt ?? this.dateUtils.getDateObject();
+            let day = parseInt(e.target.textContent);
+            dt = new Date(dt.getFullYear(), dt.getMonth(), day);
+            if(this.callback != null) {
+                this.callback(dt);
+            }
+        }
+
+        goNextWeek() {
+            this.dateUtils.goNextMonth();
+            this.header.textContent = this.dateUtils.formatDate("MMMM de YYYY", "pt-br");
+            this.renderCalendar();
+        }
+
+        goPreviousWeek() {
+            this.dateUtils.goPreviousMonth();
+            this.header.textContent = this.dateUtils.formatDate("MMMM de YYYY", "pt-br");
+            this.renderCalendar();
+        }
+        
+    }
+
+    customElements.define("mng-weekcalendar", MNGWeekCalendar);
+
     /**
      *      MNGSelect
      */
