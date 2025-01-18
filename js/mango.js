@@ -589,7 +589,7 @@ import MNGDateUtils from "./mangodate.js"
             const style = document.createElement("style");
             style.textContent = `
 
-                .mng-calendar-wrapper {
+                .mng-weekcalendar-wrapper {
                     background-color: var(--background-light, #F0F0F0);
                     border-radius: .4em;
                     border: 1px solid var(--background-dark, #C0C0C0);
@@ -599,7 +599,7 @@ import MNGDateUtils from "./mangodate.js"
                     flex-direction: column;
                     justify-items: center;
                 }
-                .mng-weekdays-grid {
+                .mng-weekcalendardays-grid {
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
                     gap: 1em;
@@ -610,7 +610,7 @@ import MNGDateUtils from "./mangodate.js"
                     padding: .5em;
                     border-radius: .4em .4em 0 0;
                 }
-                .mng-calendar-grid {
+                .mng-weekcalendar-grid {
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
                     gap: 1em;
@@ -621,7 +621,7 @@ import MNGDateUtils from "./mangodate.js"
                     border-radius: 0 0 .4em .4em;
                     cursor: pointer;
                 }
-                .mng-calendar-grid span {
+                .mng-weekcalendar-grid span {
                     border-radius: 50%;
                     width: .8em;
                     height: .8em;
@@ -631,22 +631,11 @@ import MNGDateUtils from "./mangodate.js"
                     align-items: center;
                     padding: .8em;
                 }
-                .mng-calendar-grid span:hover {
-                    color: var(--text-background);
-                    background-color: var(--background-dark);
-                }
-                .mng-calendar-light-day {
-                    color: var(--background-dark);
-                }
-                .mng-calendar-today {
-                    color: var(--tex-background);
-                    background-color: var(--background-light);
-                }
             `;
             
             super.shadowRoot.append(style); 
             const wrapper = document.createElement("div");
-            wrapper.classList.add("mng-calendar-wrapper");
+            wrapper.classList.add("mng-weekcalendar-wrapper");
 
             const hdr = document.createElement("div");
             hdr.classList.add("mng-two-btn-header");
@@ -667,7 +656,7 @@ import MNGDateUtils from "./mangodate.js"
             wrapper.appendChild(hdr);
 
             this.calGrid = document.createElement("div");
-            this.calGrid.classList.add("mng-calendar-grid");
+            // this.calGrid.classList.add("mng-weekcalendar-grid");
             wrapper.appendChild(this.calGrid);
             this.renderCalendar();
 
@@ -679,10 +668,10 @@ import MNGDateUtils from "./mangodate.js"
             this.calGrid.innerHTML = '';
             // add week days
             const weekNames = document.createElement("div");
-            // weekNames.classList.add("mng-weekdays-grid");
+            weekNames.classList.add("mng-weekcalendardays-grid");
             let row = "";
             this.dateUtils.getWeekObj().forEach(date => {
-                row += `<span>${this.dateUtils.formatDate("DD/MM/YY", "pt-br", date)}</span>`;
+                row += `<span>${this.dateUtils.formatDate("DD", "pt-br", date)}</span>`;
             });
             weekNames.innerHTML = row;
             this.calGrid.appendChild(weekNames);
