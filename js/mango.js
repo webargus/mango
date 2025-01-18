@@ -621,15 +621,11 @@ import MNGDateUtils from "./mangodate.js"
                     border-radius: 0 0 .4em .4em;
                     cursor: pointer;
                 }
-                .mng-weekcalendar-grid span {
-                    border-radius: 50%;
-                    width: .8em;
-                    height: .8em;
+                .mng-weekcalendardays-grid > div {
                     display: flex;
-                    align-content: center;
+                    flex-direction: column;
                     justify-content: center;
                     align-items: center;
-                    padding: .8em;
                 }
             `;
             
@@ -670,8 +666,13 @@ import MNGDateUtils from "./mangodate.js"
             const weekNames = document.createElement("div");
             weekNames.classList.add("mng-weekcalendardays-grid");
             let row = "";
-            this.dateUtils.getWeekObj().forEach(date => {
-                row += `<span>${this.dateUtils.formatDate("DD", "pt-br", date)}</span>`;
+            const weeks = this.dateUtils.getWeekObj();
+            this.composeWeekCalendarHeaderText(weeks);
+            weeks.forEach(date => {
+                row += `<div>`;
+                row += `<div>${this.dateUtils.formatDate("DD", "pt-br", date)}</div>`;
+                row += `<div>${date.toLocaleString("pt-br", {month: "long"}).substring(0,3)}</div>`;
+                row += `</div>`;
             });
             weekNames.innerHTML = row;
             this.calGrid.appendChild(weekNames);
@@ -714,7 +715,8 @@ import MNGDateUtils from "./mangodate.js"
         formatWeekCalendarHeaderText(date) {
             var monthName = date.toLocaleString("pt-br", {month: "short"}).substring(0,3);
             monthName = `<span style="text-transform: capitalize;">${monthName}</span>`;
-            return this.dateUtils.formatDate(`DD de ${monthName} de YYYY`, "pt-br", date);
+            return this.dateUtils.formatDate("DD/MM/YYYY", "pt-br", date);
+            // return this.dateUtils.formatDate(`DD de ${monthName} de YYYY`, "pt-br", date);
         }
 
         composeWeekCalendarHeaderText(week) {
