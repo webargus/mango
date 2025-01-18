@@ -31,6 +31,7 @@ import MNGDateUtils from "./mangodate.js"
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
+                gap: 1em;
                 background-color: var(--background-light);
                 border-radius: 10px;
                 padding: 0 .3em;
@@ -559,7 +560,6 @@ import MNGDateUtils from "./mangodate.js"
     class MNGWeekCalendar extends MNGGlobalBase {
 
         dateUtils;
-        weekObjs;
         btnLeft;
         btnRight;
         header;
@@ -586,7 +586,6 @@ import MNGDateUtils from "./mangodate.js"
 
         render() {
             this.dateUtils = new MNGDateUtils();
-            this.weekObjs = this.dateUtils.getCalendarWeeks();
             const style = document.createElement("style");
             style.textContent = `
 
@@ -658,8 +657,6 @@ import MNGDateUtils from "./mangodate.js"
             hdr.appendChild(this.btnLeft);
             // month, year
             this.header = document.createElement("div");
-            // this.weekObjs[0][0].initDate.
-            // this.header.textContent = this.dateUtils.formatDate("MMMM de YYYY", "pt-br");
             hdr.appendChild(this.header);
             // arrow right
             this.btnRight = document.createElement("mng-round-btn");
@@ -668,15 +665,6 @@ import MNGDateUtils from "./mangodate.js"
             hdr.appendChild(this.btnRight);
             // add header with month, year, btn left and btn right
             wrapper.appendChild(hdr);
-            // add week days
-            const weekNames = document.createElement("div");
-            weekNames.classList.add("mng-weekdays-grid");
-            var row = "";
-            this.dateUtils.getLocaleWeekDayNames("pt-br", 3).forEach(wday => {
-                row += `<span>${wday.substring(0, 3)}</span>`;
-            });
-            weekNames.innerHTML = row;
-            wrapper.appendChild(weekNames);
 
             this.calGrid = document.createElement("div");
             this.calGrid.classList.add("mng-calendar-grid");
@@ -689,31 +677,40 @@ import MNGDateUtils from "./mangodate.js"
         renderCalendar() {
             // clear prev calendar (if any)
             this.calGrid.innerHTML = '';
-            // add calendar grid
-            const calendar = this.dateUtils.getCalendarObject();
-            calendar.matrix.forEach((day, ix) => {
-                var span = document.createElement("span");
-                if(ix == calendar.todayPos && this.dateUtils.isToday(new Date())) {
-                    span.classList.add("mng-calendar-today");
-                }
-                span.textContent = day;
-                if(ix < calendar.firstWeekDay) {
-                    span.addEventListener("click", e => {
-                        const dt = this.dateUtils.goPreviousMonth(this.dateUtils.getDateObject());
-                        this.dateCallback(e, dt);
-                    });
-                    span.classList.add("mng-calendar-light-day");
-                } else if (ix >= calendar.firstWeekDay + calendar.numDays) {
-                    span.addEventListener("click", e => {
-                        const dt = this.dateUtils.goNextMonth(this.dateUtils.getDateObject());
-                        this.dateCallback(e, dt);
-                    });
-                    span.classList.add("mng-calendar-light-day");
-                } else {
-                    span.addEventListener("click", this.dateCallback);
-                }
-                this.calGrid.appendChild(span);
+            // add week days
+            const weekNames = document.createElement("div");
+            // weekNames.classList.add("mng-weekdays-grid");
+            let row = "";
+            this.dateUtils.getWeekObj().forEach(date => {
+                row += `<span>${this.dateUtils.formatDate("DD/MM/YY", "pt-br", date)}</span>`;
             });
+            weekNames.innerHTML = row;
+            this.calGrid.appendChild(weekNames);
+            // add calendar grid
+            // const calendar = this.dateUtils.getCalendarObject();
+            // calendar.matrix.forEach((day, ix) => {
+            //     var span = document.createElement("span");
+            //     if(ix == calendar.todayPos && this.dateUtils.isToday(new Date())) {
+            //         span.classList.add("mng-calendar-today");
+            //     }
+            //     span.textContent = day;
+            //     if(ix < calendar.firstWeekDay) {
+            //         span.addEventListener("click", e => {
+            //             const dt = this.dateUtils.goPreviousMonth(this.dateUtils.getDateObject());
+            //             this.dateCallback(e, dt);
+            //         });
+            //         span.classList.add("mng-calendar-light-day");
+            //     } else if (ix >= calendar.firstWeekDay + calendar.numDays) {
+            //         span.addEventListener("click", e => {
+            //             const dt = this.dateUtils.goNextMonth(this.dateUtils.getDateObject());
+            //             this.dateCallback(e, dt);
+            //         });
+            //         span.classList.add("mng-calendar-light-day");
+            //     } else {
+            //         span.addEventListener("click", this.dateCallback);
+            //     }
+            //     this.calGrid.appendChild(span);
+            // });
         }
 
         dateCallback(e, dt = null) {
@@ -725,15 +722,27 @@ import MNGDateUtils from "./mangodate.js"
             }
         }
 
+        formatWeekCalendarHeaderText(date) {
+            var monthName = date.toLocaleString("pt-br", {month: "short"}).substring(0,3);
+            monthName = `<span style="text-transform: capitalize;">${monthName}</span>`;
+            return this.dateUtils.formatDate(`DD de ${monthName} de YYYY`, "pt-br", date);
+        }
+
+        composeWeekCalendarHeaderText(week) {
+            var headerText = "De ";
+            headerText += this.formatWeekCalendarHeaderText(week[0]);
+            headerText += " a ";
+            headerText += this.formatWeekCalendarHeaderText(week[6]);
+            this.header.innerHTML = headerText;
+        }
+
         goNextWeek() {
-            this.dateUtils.goNextMonth();
-            this.header.textContent = this.dateUtils.formatDate("MMMM de YYYY", "pt-br");
+            this.composeWeekCalendarHeaderText(this.dateUtils.goNextWeek());
             this.renderCalendar();
         }
 
         goPreviousWeek() {
-            this.dateUtils.goPreviousMonth();
-            this.header.textContent = this.dateUtils.formatDate("MMMM de YYYY", "pt-br");
+            this.composeWeekCalendarHeaderText(this.dateUtils.goPrevWeek());
             this.renderCalendar();
         }
         

@@ -83,6 +83,8 @@ export default class MNGDateUtils {
     formatDate(fmtString, lang, date = null) {
         date = date ?? this.currDate;
         return fmtString.replace(/\bYYYY\b/, date.getFullYear())
+                        .replace(/\bYY\b/, date.toLocaleString(lang, {year: '2-digit'}))
+                        .replace(/\bM\b/, date.toLocaleString(lang, {month: 'short'}))
                         .replace(/\bMM\b/, date.toLocaleString(lang, {month: '2-digit'}))
                         .replace(/\bMMMM\b/, date.toLocaleString(lang, {month: 'long'}))
                         .replace(/\bDD\b/, date.toLocaleString(lang, {day: '2-digit'}))
@@ -139,7 +141,8 @@ export default class MNGDateUtils {
         if(this.weekDays.length == 0) { this.getWeekObj(date); }
         date = new Date(this.weekDays[6].getFullYear(),
                         this.weekDays[6].getMonth(),
-                        this.weekDays[6].getDate() + 1);
+                        this.weekDays[6].getDate() + 7);
+        this.currDate = date;
         return this.getWeekObj(date);
     }
 
@@ -148,7 +151,8 @@ export default class MNGDateUtils {
         if(this.weekDays.length == 0) { this.getWeekObj(date); }
         date = new Date(this.weekDays[0].getFullYear(),
                         this.weekDays[0].getMonth(),
-                        this.weekDays[0].getDate() - 1);
+                        this.weekDays[0].getDate() - 7);
+        this.currDate = date;
         return this.getWeekObj(date);
     }
 
