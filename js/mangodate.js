@@ -124,13 +124,7 @@ export default class MNGDateUtils {
         const d = date.getDate();
         const day = date.getDay();
         this.weekDays = [];
-        // const daysInMonth = this.getNumDaysInMonth(date.getFullYear(), date.getMonth());
         for(let ix = d - day; ix < d + 7 - day; ix++) {
-            // if(ix <= 0 || ix > daysInMonth) {
-            //     this.wdays.push(new Date(date.getFullYear(), date.getMonth(), ix).getDate());
-            // } else {
-            //     this.wdays.push(ix);
-            // }
             this.weekDays.push(new Date(date.getFullYear(), date.getMonth(), ix));
         }
         return this.weekDays;

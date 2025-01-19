@@ -553,6 +553,52 @@ import MNGDateUtils from "./mangodate.js"
     }
 
     customElements.define("mng-calendar", MNGCalendar);
+
+    class MNGWeekCalendarEvents {
+
+        static selections = [];
+        static firstClick = false;
+        static danglingObj;
+
+        static handleHourClick(e) {
+            // console.log(e.target);
+            e.preventDefault();
+            const t = e.target;
+            const status = t.getAttribute("status") ?? "available";
+            if(MNGWeekCalendarEvents.firstClick) {
+                console.log("validate 2nd click");
+                MNGWeekCalendarEvents.validateSecondClick(t, status);
+                return;
+            }
+            // hour cell is available and that's the first click
+            // select the cell and raise the first-click flag
+            if(status == "available") {
+                t.classList.add("mng-weekcalendar-selected");
+                MNGWeekCalendarEvents.firstClick = true;
+                // Create possible obj (initial hour cell) to be included in the selection
+                // but do not include it in the selection array yet
+                MNGWeekCalendarEvents.danglingObj = {init: t, end: undefined};
+            }
+        }
+
+        static validateSecondClick(t, status) {
+            if(status == "available") {
+                t.setAttribute("status", "taken");
+                MNGWeekCalendarEvents.danglingObj.end = t;
+                MNGWeekCalendarEvents.selections.push(MNGWeekCalendarEvents.danglingObj);
+                t.classList.add("mng-weekcalendar-selected");
+                MNGWeekCalendarEvents.firstClick = false;
+                console.log(MNGWeekCalendarEvents.selections);
+                return;
+            }
+        }
+
+        static getClickedObj(t) {
+            return {wday: t.getAttribute("wd"),
+                    hour: t.getAttribute("hrs"),
+                    min:  t.getAttribute("min")};
+        }
+    }
     
     /**
      *  MNGWeekCalendar
@@ -577,7 +623,6 @@ import MNGDateUtils from "./mangodate.js"
             this.callback = callback;
             this.goNextWeek = this.goNextWeek.bind(this);         // crashes unless we bind these methods to 'this'
             this.goPreviousWeek = this.goPreviousWeek.bind(this);
-            this.dateCallback = this.dateCallback.bind(this);
         }
         
         connectedCallback() {
@@ -627,7 +672,10 @@ import MNGDateUtils from "./mangodate.js"
                     border: transparent;
                     border-left: 1px solid var(--text-dark);
                     border-top: 1px solid var(--text-dark);
-                    padding: .25em;
+                    padding: .5em;
+                }
+                .mng-weekcalendardays-grid > div:nth-child(n+8) {
+                    cursor: pointer;
                 }
                 .mng-weekcalendardays-hours {
                     font-size: .7em;
@@ -637,6 +685,9 @@ import MNGDateUtils from "./mangodate.js"
                 }
                 .mng-weekcalendar-border-bottom {
                     border-bottom: 1px solid var(--text-dark)!important;
+                }
+                .mng-weekcalendar-selected {
+                    background-color: orange;
                 }
             `;
             
@@ -664,12 +715,12 @@ import MNGDateUtils from "./mangodate.js"
 
             this.calGrid = document.createElement("div");
             wrapper.appendChild(this.calGrid);
-            this.renderCalendar();
+            this.renderWeekCalendar();
 
             super.shadowRoot.appendChild(wrapper);
         }
 
-        renderCalendar() {
+        renderWeekCalendar() {
             // clear prev calendar (if any)
             this.calGrid.innerHTML = '';
             // add week days
@@ -691,36 +742,31 @@ import MNGDateUtils from "./mangodate.js"
             // render hours grid
             const initHour = parseInt(this.getAttribute("initHour"));
             const endHour = parseInt(this.getAttribute("endHour"));
-            const timeStep = parseInt(this.getAttribute("timeStep"));
+            const timeStep = parseInt(this.getAttribute("timeStep")); // 1-> :30h; 0 -> ::00h
             for(let hrs = initHour; hrs <= endHour; hrs++) {
-                for(let wd = 0; wd < 7; wd++) {
-                    var whr = document.createElement("div");
-                    whr.setAttribute("wd", wd);
-                    whr.setAttribute("hrs", hrs);
-                    whr.classList.add("mng-weekcalendardays-hours");
-                    if(wd == 6) { whr.classList.add("mng-weekcalendar-border-right"); }
-                    if(hrs == endHour) { whr.classList.add("mng-weekcalendar-border-bottom"); }
-                    whr.innerText = `${hrs}:00h`;
-                    weekNames.appendChild(whr);
+                for(let stp = 0; stp <= timeStep; stp++) {
+                    let mins = 3*stp + "0";
+                    for(let wd = 0; wd < 7; wd++) {
+                        var whr = document.createElement("div");
+                        whr.setAttribute("wd", wd);
+                        whr.setAttribute("hrs", hrs);
+                        whr.setAttribute("min", mins);
+                        whr.classList.add("mng-weekcalendardays-hours");
+                        if(wd == 6) { whr.classList.add("mng-weekcalendar-border-right"); }
+                        if(hrs + stp == endHour + timeStep) { whr.classList.add("mng-weekcalendar-border-bottom"); }
+                        whr.innerText = `${hrs}:${mins}h`;
+                        whr.addEventListener("click", MNGWeekCalendarEvents.handleHourClick);
+                        weekNames.appendChild(whr);
+                    }
                 }
             }
             this.calGrid.appendChild(weekNames);
-        }
-
-        dateCallback(e, dt = null) {
-            dt = dt ?? this.dateUtils.getDateObject();
-            let day = parseInt(e.target.textContent);
-            dt = new Date(dt.getFullYear(), dt.getMonth(), day);
-            if(this.callback != null) {
-                this.callback(dt);
-            }
         }
 
         formatWeekCalendarHeaderText(date) {
             var monthName = date.toLocaleString("pt-br", {month: "short"}).substring(0,3);
             monthName = `<span style="text-transform: capitalize;">${monthName}</span>`;
             return this.dateUtils.formatDate("DD/MM/YYYY", "pt-br", date);
-            // return this.dateUtils.formatDate(`DD de ${monthName} de YYYY`, "pt-br", date);
         }
 
         composeWeekCalendarHeaderText(week) {
@@ -733,14 +779,13 @@ import MNGDateUtils from "./mangodate.js"
 
         goNextWeek() {
             this.composeWeekCalendarHeaderText(this.dateUtils.goNextWeek());
-            this.renderCalendar();
+            this.renderWeekCalendar();
         }
 
         goPreviousWeek() {
             this.composeWeekCalendarHeaderText(this.dateUtils.goPrevWeek());
-            this.renderCalendar();
-        }
-        
+            this.renderWeekCalendar();
+        }        
     }
 
     customElements.define("mng-weekcalendar", MNGWeekCalendar);
