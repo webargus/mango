@@ -60,7 +60,8 @@ onload = _ => {
         console.log(date);
     };
     
-    const modalOk = document.querySelector("mng-modalok");
+    const modalOk = document.getElementById("modal_ok");
+    // modalOk.openModal();
     modalOk.setHeader("Modal OK header test");
     modalOk.setContent("This is a test; warning messages will be displayed here...");
 

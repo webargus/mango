@@ -602,10 +602,8 @@ import MNGDateUtils from "./mangodate.js"
                 .mng-weekcalendardays-grid {
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
-                    gap: 1em;
                     font-size: small;
                     margin-top: 1em;
-                    justify-items: center;
                     background-color: var(--text-background);
                     padding: .5em;
                     border-radius: .4em .4em 0 0;
@@ -626,6 +624,19 @@ import MNGDateUtils from "./mangodate.js"
                     flex-direction: column;
                     justify-content: center;
                     align-items: center;
+                    border: transparent;
+                    border-left: 1px solid var(--text-dark);
+                    border-top: 1px solid var(--text-dark);
+                    padding: .25em;
+                }
+                .mng-weekcalendardays-hours {
+                    font-size: .7em;
+                }
+                .mng-weekcalendar-border-right {
+                    border-right: 1px solid var(--text-dark)!important;
+                }
+                .mng-weekcalendar-border-bottom {
+                    border-bottom: 1px solid var(--text-dark)!important;
                 }
             `;
             
@@ -652,7 +663,6 @@ import MNGDateUtils from "./mangodate.js"
             wrapper.appendChild(hdr);
 
             this.calGrid = document.createElement("div");
-            // this.calGrid.classList.add("mng-weekcalendar-grid");
             wrapper.appendChild(this.calGrid);
             this.renderCalendar();
 
@@ -665,42 +675,36 @@ import MNGDateUtils from "./mangodate.js"
             // add week days
             const weekNames = document.createElement("div");
             weekNames.classList.add("mng-weekcalendardays-grid");
-            let row = "";
             const weeks = this.dateUtils.getWeekObj();
             this.composeWeekCalendarHeaderText(weeks);
-            weeks.forEach(date => {
-                row += `<div>`;
-                row += `<div>${this.dateUtils.formatDate("DD", "pt-br", date)}</div>`;
-                row += `<div>${date.toLocaleString("pt-br", {month: "long"}).substring(0,3)}</div>`;
-                row += `</div>`;
+            weeks.forEach((date, ix, arr) => {
+                let div = document.createElement("div");
+                let div0 = document.createElement("div");
+                div0.innerText =`${this.dateUtils.formatDate("DD", "pt-br", date)}`;
+                div.appendChild(div0);
+                div0 = document.createElement("div");
+                div0.innerText = `${date.toLocaleString("pt-br", {month: "long"}).substring(0,3)}`;
+                div.appendChild(div0);
+                if(ix == arr.length - 1) { div.classList.add("mng-weekcalendar-border-right"); }
+                weekNames.appendChild(div);
             });
-            weekNames.innerHTML = row;
+            // render hours grid
+            const initHour = parseInt(this.getAttribute("initHour"));
+            const endHour = parseInt(this.getAttribute("endHour"));
+            const timeStep = parseInt(this.getAttribute("timeStep"));
+            for(let hrs = initHour; hrs <= endHour; hrs++) {
+                for(let wd = 0; wd < 7; wd++) {
+                    var whr = document.createElement("div");
+                    whr.setAttribute("wd", wd);
+                    whr.setAttribute("hrs", hrs);
+                    whr.classList.add("mng-weekcalendardays-hours");
+                    if(wd == 6) { whr.classList.add("mng-weekcalendar-border-right"); }
+                    if(hrs == endHour) { whr.classList.add("mng-weekcalendar-border-bottom"); }
+                    whr.innerText = `${hrs}:00h`;
+                    weekNames.appendChild(whr);
+                }
+            }
             this.calGrid.appendChild(weekNames);
-            // add calendar grid
-            // const calendar = this.dateUtils.getCalendarObject();
-            // calendar.matrix.forEach((day, ix) => {
-            //     var span = document.createElement("span");
-            //     if(ix == calendar.todayPos && this.dateUtils.isToday(new Date())) {
-            //         span.classList.add("mng-calendar-today");
-            //     }
-            //     span.textContent = day;
-            //     if(ix < calendar.firstWeekDay) {
-            //         span.addEventListener("click", e => {
-            //             const dt = this.dateUtils.goPreviousMonth(this.dateUtils.getDateObject());
-            //             this.dateCallback(e, dt);
-            //         });
-            //         span.classList.add("mng-calendar-light-day");
-            //     } else if (ix >= calendar.firstWeekDay + calendar.numDays) {
-            //         span.addEventListener("click", e => {
-            //             const dt = this.dateUtils.goNextMonth(this.dateUtils.getDateObject());
-            //             this.dateCallback(e, dt);
-            //         });
-            //         span.classList.add("mng-calendar-light-day");
-            //     } else {
-            //         span.addEventListener("click", this.dateCallback);
-            //     }
-            //     this.calGrid.appendChild(span);
-            // });
         }
 
         dateCallback(e, dt = null) {
