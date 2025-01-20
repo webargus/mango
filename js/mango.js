@@ -558,45 +558,85 @@ import MNGDateUtils from "./mangodate.js"
 
         static selections = [];
         static firstClick = false;
-        static danglingObj;
+        static danglingObj = {};
 
         static handleHourClick(e) {
             // console.log(e.target);
             e.preventDefault();
             const t = e.target;
             const status = t.getAttribute("status") ?? "available";
-            if(MNGWeekCalendarEvents.firstClick) {
-                console.log("validate 2nd click");
-                MNGWeekCalendarEvents.validateSecondClick(t, status);
-                return;
-            }
-            // hour cell is available and that's the first click
-            // select the cell and raise the first-click flag
-            if(status == "available") {
-                t.classList.add("mng-weekcalendar-selected");
-                MNGWeekCalendarEvents.firstClick = true;
-                // Create possible obj (initial hour cell) to be included in the selection
-                // but do not include it in the selection array yet
-                MNGWeekCalendarEvents.danglingObj = {init: t, end: undefined};
+            switch(status) {
+                case "available":
+                    if(MNGWeekCalendarEvents.firstClick) {
+                        // user has clicked on a cell before
+                        if(MNGWeekCalendarEvents.validateSecondClick(t)) {
+                            // valid second click -> update dangling selection object
+                            MNGWeekCalendarEvents.danglingObj.end = t;
+                            MNGWeekCalendarEvents.selections.push(MNGWeekCalendarEvents.danglingObj);
+                            // update obect html params
+                            t.classList.add("mng-weekcalendar-selected");
+                            t.setAttribute("status", "taken");
+                            // put first click flag down to enable fresh selections
+                            MNGWeekCalendarEvents.firstClick = false;
+                            console.log(MNGWeekCalendarEvents.selections);
+                        }
+                    } else {
+                        // that's a first click on an available cell
+                        MNGWeekCalendarEvents.firstClick = true;
+                        // set dangling selection initial object to this one
+                        MNGWeekCalendarEvents.danglingObj.init = t;
+                        // update cell selection on GUI
+                        t.classList.add("mng-weekcalendar-selected");
+                        t.setAttribute("status", "taken");
+                    }
+                    break;
+                case "taken":
+                    // user made a second click on a cell already taken
+                    MNGWeekCalendarEvents.resetSelection();
+                    break;
             }
         }
 
-        static validateSecondClick(t, status) {
-            if(status == "available") {
-                t.setAttribute("status", "taken");
-                MNGWeekCalendarEvents.danglingObj.end = t;
-                MNGWeekCalendarEvents.selections.push(MNGWeekCalendarEvents.danglingObj);
-                t.classList.add("mng-weekcalendar-selected");
-                MNGWeekCalendarEvents.firstClick = false;
-                console.log(MNGWeekCalendarEvents.selections);
-                return;
+        static validateSecondClick(t) {
+            const firstObj = MNGWeekCalendarEvents.getClickedObj(MNGWeekCalendarEvents.danglingObj.init);
+            const secondObj = MNGWeekCalendarEvents.getClickedObj(t);
+            if(firstObj.wday != secondObj.wday) {
+                // user clicked on a different day column -> reset selection
+                MNGWeekCalendarEvents.resetSelection();
+                return false;
+            } else {
+                // user clicked on the hour cell initially selected -> reset selection
+                if(firstObj.hour == secondObj.hour && firstObj.min == secondObj.min) {
+                    MNGWeekCalendarEvents.resetSelection();
+                    return false;
+                }
             }
+            // check if there is any cell previously selected between cell selected first
+            // and this last one inclusevely
+            
+            return true;
         }
 
         static getClickedObj(t) {
             return {wday: t.getAttribute("wd"),
                     hour: t.getAttribute("hrs"),
                     min:  t.getAttribute("min")};
+        }
+
+        static resetSelection() {
+            let obj = MNGWeekCalendarEvents.danglingObj
+            if(obj) {
+                if(obj.init) {
+                    obj.init.classList.remove("mng-weekcalendar-selected");
+                    obj.init.setAttribute("status", "available");
+                }
+                if(obj.end) {
+                    obj.end.classList.remove("mng-weekcalendar-selected");
+                    obj.end.setAttribute("status", "available");
+                }
+                MNGWeekCalendarEvents.firstClick = false;
+                MNGWeekCalendarEvents.danglingObj = {};
+            }
         }
     }
     
