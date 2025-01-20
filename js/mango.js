@@ -572,7 +572,11 @@ import MNGDateUtils from "./mangodate.js"
                         if(MNGWeekCalendarEvents.validateSecondClick(t)) {
                             // valid second click -> update dangling selection object
                             MNGWeekCalendarEvents.danglingObj.end = t;
-                            MNGWeekCalendarEvents.selections.push(MNGWeekCalendarEvents.danglingObj);
+                            // we need to do a deep copy of the dangling obj
+                            // because it is static => pushed objs will be equal
+                            // to the most recent dangling obj if we push it straight
+                            const cpy = Object.assign({}, MNGWeekCalendarEvents.danglingObj);
+                            MNGWeekCalendarEvents.selections.push(cpy);
                             // update obect html params
                             t.classList.add("mng-weekcalendar-selected");
                             t.setAttribute("status", "taken");
@@ -613,7 +617,7 @@ import MNGDateUtils from "./mangodate.js"
             }
             // check if there is any cell previously selected between cell selected first
             // and this last one inclusevely
-            
+            console.log(MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.danglingObj.init, t));
             return true;
         }
 
@@ -637,6 +641,23 @@ import MNGDateUtils from "./mangodate.js"
                 MNGWeekCalendarEvents.firstClick = false;
                 MNGWeekCalendarEvents.danglingObj = {};
             }
+        }
+
+        static getCellObjs(t1, t2) {
+            var wd = t1.getAttribute("wd");
+            if(t2.getAttribute("wd") != wd) { return []; }
+            wd = parseInt(wd);
+            const min1 = parseInt(t1.getAttribute("min"));
+            const min2 = parseInt(t2.getAttribute("min"));
+            const hrs1 = parseInt(t1.getAttribute("hrs")) + min1/60;
+            const hrs2 = parseInt(t2.getAttribute("hrs")) + min2/60;
+            return [...t1.parentElement.children].filter( child => {
+                let min = parseInt(child.getAttribute("min"));
+                let hrs = parseInt(child.getAttribute("hrs")) + min/60;
+                return (wd == parseInt(child.getAttribute("wd"))) &&
+                        (hrs > hrs1) && (hrs <= hrs2);
+
+            });
         }
     }
     
