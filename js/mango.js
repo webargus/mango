@@ -572,6 +572,8 @@ import MNGDateUtils from "./mangodate.js"
                         if(MNGWeekCalendarEvents.validateSecondClick(t)) {
                             // valid second click -> update dangling selection object
                             MNGWeekCalendarEvents.danglingObj.end = t;
+                            // obj list structure
+                            // [{ws: 2, hrs: 10, min: 00}, {ws: 3, hrs: 20, min: 30}, ...]
                             // we need to do a deep copy of the dangling obj
                             // because it is static => pushed objs will be equal
                             // to the most recent dangling obj if we push it straight
