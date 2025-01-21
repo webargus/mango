@@ -582,6 +582,8 @@ import MNGDateUtils from "./mangodate.js"
                             // put first click flag down to enable fresh selections
                             MNGWeekCalendarEvents.firstClick = false;
                             console.log(MNGWeekCalendarEvents.selections);
+                        } else {
+                            MNGWeekCalendarEvents.resetSelection();
                         }
                     } else {
                         // that's a first click on an available cell
@@ -617,15 +619,18 @@ import MNGDateUtils from "./mangodate.js"
             // check if there is any cell previously selected between cell selected first
             // and this last one inclusevely
             const sel = MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.clickedElement, t);
-            sel.forEach((s0, ix) => {
-                if(ix != 0) {   // skip first selection, which was already taken
-                    MNGWeekCalendarEvents.selections.forEach(s1 => {
-                        if(s0.wd == s1.wd && s0.hrs == s1.hrs && s0.mins == s1.mins) {
+            for(let iy=0; iy< sel.length; iy++) {
+                let s0 = sel[iy];
+                for(let iz=0; iz<MNGWeekCalendarEvents.selections.length; iz++) {
+                    let s1 = MNGWeekCalendarEvents.selections[iz];
+                    for(let ix=0; ix<s1.length;ix++) {
+                        let s2 = s1[ix];
+                        if(s0.wd == s2.wd && s0.hrs == s2.hrs && s0.mins == s2.mins) {
                             return false;
                         }
-                    });
+                    }
                 }
-            });
+            };
             return true;
         }
 
