@@ -558,30 +558,27 @@ import MNGDateUtils from "./mangodate.js"
 
         static selections = [];
         static firstClick = false;
-        static danglingObj = {};
+        static clickedElement;
 
         static handleHourClick(e) {
             // console.log(e.target);
             e.preventDefault();
             const t = e.target;
-            const status = t.getAttribute("status") ?? "available";
+            const status = t.dataset.status ?? "available";
             switch(status) {
                 case "available":
                     if(MNGWeekCalendarEvents.firstClick) {
-                        // user has clicked on a cell before
+                        // user has clicked on an available cell before
                         if(MNGWeekCalendarEvents.validateSecondClick(t)) {
                             // valid second click -> update dangling selection object
-                            MNGWeekCalendarEvents.danglingObj.end = t;
                             // obj list structure
-                            // [{ws: 2, hrs: 10, min: 00}, {ws: 3, hrs: 20, min: 30}, ...]
-                            // we need to do a deep copy of the dangling obj
-                            // because it is static => pushed objs will be equal
-                            // to the most recent dangling obj if we push it straight
-                            const cpy = Object.assign({}, MNGWeekCalendarEvents.danglingObj);
-                            MNGWeekCalendarEvents.selections.push(cpy);
-                            // update obect html params
+                            // [{ws: 2, hrs: 10, mins: 00}, {ws: 3, hrs: 20, mins: 30}, ...]
+                            MNGWeekCalendarEvents.selections.push(
+                                MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.clickedElement, t)
+                            );
+                            // update object html params
                             t.classList.add("mng-weekcalendar-selected");
-                            t.setAttribute("status", "taken");
+                            t.dataset.status = "taken";
                             // put first click flag down to enable fresh selections
                             MNGWeekCalendarEvents.firstClick = false;
                             console.log(MNGWeekCalendarEvents.selections);
@@ -590,10 +587,10 @@ import MNGDateUtils from "./mangodate.js"
                         // that's a first click on an available cell
                         MNGWeekCalendarEvents.firstClick = true;
                         // set dangling selection initial object to this one
-                        MNGWeekCalendarEvents.danglingObj.init = t;
+                        MNGWeekCalendarEvents.clickedElement = t;
                         // update cell selection on GUI
                         t.classList.add("mng-weekcalendar-selected");
-                        t.setAttribute("status", "taken");
+                        t.dataset.status = "taken";
                     }
                     break;
                 case "taken":
@@ -604,7 +601,7 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         static validateSecondClick(t) {
-            const firstObj = MNGWeekCalendarEvents.getClickedObj(MNGWeekCalendarEvents.danglingObj.init);
+            const firstObj = MNGWeekCalendarEvents.getClickedObj(MNGWeekCalendarEvents.clickedElement);
             const secondObj = MNGWeekCalendarEvents.getClickedObj(t);
             if(firstObj.wday != secondObj.wday) {
                 // user clicked on a different day column -> reset selection
@@ -619,18 +616,27 @@ import MNGDateUtils from "./mangodate.js"
             }
             // check if there is any cell previously selected between cell selected first
             // and this last one inclusevely
-            console.log(MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.danglingObj.init, t));
+            const sel = MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.clickedElement, t);
+            sel.forEach((s0, ix) => {
+                if(ix != 0) {   // skip first selection, which was already taken
+                    MNGWeekCalendarEvents.selections.forEach(s1 => {
+                        if(s0.wd == s1.wd && s0.hrs == s1.hrs && s0.mins == s1.mins) {
+                            return false;
+                        }
+                    });
+                }
+            });
             return true;
         }
 
         static getClickedObj(t) {
-            return {wday: t.getAttribute("wd"),
-                    hour: t.getAttribute("hrs"),
-                    min:  t.getAttribute("min")};
+            return {wday: t.dataset.wd,
+                    hour: t.dataset.hrs,
+                    min:  t.dataset.mins};
         }
 
         static resetSelection() {
-            let obj = MNGWeekCalendarEvents.danglingObj
+            let obj = MNGWeekCalendarEvents.clickedElement
             if(obj) {
                 if(obj.init) {
                     obj.init.classList.remove("mng-weekcalendar-selected");
@@ -641,24 +647,23 @@ import MNGDateUtils from "./mangodate.js"
                     obj.end.setAttribute("status", "available");
                 }
                 MNGWeekCalendarEvents.firstClick = false;
-                MNGWeekCalendarEvents.danglingObj = {};
+                MNGWeekCalendarEvents.clickedElement = {};
             }
         }
 
         static getCellObjs(t1, t2) {
-            var wd = t1.getAttribute("wd");
-            if(t2.getAttribute("wd") != wd) { return []; }
+            var wd = t1.dataset.wd;
+            if(t2.dataset.wd != wd) { return []; }
             wd = parseInt(wd);
-            const min1 = parseInt(t1.getAttribute("min"));
-            const min2 = parseInt(t2.getAttribute("min"));
-            const hrs1 = parseInt(t1.getAttribute("hrs")) + min1/60;
-            const hrs2 = parseInt(t2.getAttribute("hrs")) + min2/60;
-            return [...t1.parentElement.children].filter( child => {
-                let min = parseInt(child.getAttribute("min"));
-                let hrs = parseInt(child.getAttribute("hrs")) + min/60;
-                return (wd == parseInt(child.getAttribute("wd"))) &&
-                        (hrs > hrs1) && (hrs <= hrs2);
-
+            var hrs1 = parseInt(t1.dataset.hrs) + parseInt(t1.dataset.mins)/60;
+            var hrs2 = parseInt(t2.dataset.hrs) + parseInt(t2.dataset.mins)/60;
+            // swap hours if init hour greater than end one
+            [hrs1, hrs2] = hrs1 > hrs2 ? [hrs2, hrs1] : [hrs1, hrs2];
+            return [...t1.parentElement.children].filter( div => {
+                let hrs = parseInt(div.dataset.hrs) + parseInt(div.dataset.mins)/60;
+                return (wd == parseInt(div.dataset.wd)) && (hrs >= hrs1) && (hrs <= hrs2);
+            }).map(div => {
+                return {wd: div.dataset.wd, hrs: div.dataset.hrs, mins: div.dataset.mins};
             });
         }
     }
@@ -716,17 +721,6 @@ import MNGDateUtils from "./mangodate.js"
                     padding: .5em;
                     border-radius: .4em .4em 0 0;
                 }
-                .mng-weekcalendar-grid {
-                    display: grid;
-                    grid-template-columns: repeat(7, 1fr);
-                    gap: 1em;
-                    font-size: small;
-                    justify-items: center;
-                    background-color: var(--text-background);
-                    padding: .5em;
-                    border-radius: 0 0 .4em .4em;
-                    cursor: pointer;
-                }
                 .mng-weekcalendardays-grid > div {
                     display: flex;
                     flex-direction: column;
@@ -739,8 +733,6 @@ import MNGDateUtils from "./mangodate.js"
                 }
                 .mng-weekcalendardays-grid > div:nth-child(n+8) {
                     cursor: pointer;
-                }
-                .mng-weekcalendardays-hours {
                     font-size: .7em;
                 }
                 .mng-weekcalendar-border-right {
@@ -803,20 +795,21 @@ import MNGDateUtils from "./mangodate.js"
                 weekNames.appendChild(div);
             });
             // render hours grid
-            const initHour = parseInt(this.getAttribute("initHour"));
-            const endHour = parseInt(this.getAttribute("endHour"));
-            const timeStep = parseInt(this.getAttribute("timeStep")); // 1-> :30h; 0 -> ::00h
+            const initHour = parseInt(this.dataset.initHour);
+            const endHour = parseInt(this.dataset.endHour);
+            const timeStep = parseInt(this.dataset.timeStep); // 1-> :30h; 0 -> ::00h
             for(let hrs = initHour; hrs <= endHour; hrs++) {
                 for(let stp = 0; stp <= timeStep; stp++) {
                     let mins = 3*stp + "0";
                     for(let wd = 0; wd < 7; wd++) {
                         var whr = document.createElement("div");
-                        whr.setAttribute("wd", wd);
-                        whr.setAttribute("hrs", hrs);
-                        whr.setAttribute("min", mins);
-                        whr.classList.add("mng-weekcalendardays-hours");
+                        whr.dataset.wd = wd;
+                        whr.dataset.hrs = hrs;
+                        whr.dataset.mins = mins;
                         if(wd == 6) { whr.classList.add("mng-weekcalendar-border-right"); }
-                        if(hrs + stp == endHour + timeStep) { whr.classList.add("mng-weekcalendar-border-bottom"); }
+                        if(hrs + stp == endHour + timeStep) {
+                            whr.classList.add("mng-weekcalendar-border-bottom");
+                        }
                         whr.innerText = `${hrs}:${mins}h`;
                         whr.addEventListener("click", MNGWeekCalendarEvents.handleHourClick);
                         weekNames.appendChild(whr);
