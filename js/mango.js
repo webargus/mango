@@ -637,8 +637,10 @@ import MNGDateUtils from "./mangodate.js"
             e.preventDefault();
             const t = e.target;
             if(MNGWeekCalendarEvents.isCellSelected(MNGWeekCalendarEvents.getCellObj(t))) {
-                // user made a second click on a cell already taken
+                // user clicked on a cell already taken
                 MNGWeekCalendarEvents.resetSelection();
+                /** TODO: Prompt user to cancel selection */
+                // MNGWeekCalendarEvents.Callback("Agendamento inv&aacute;lido 1");
             } else {
                 if(MNGWeekCalendarEvents.firstClick) {
                     // user has clicked on an available cell before
@@ -650,13 +652,12 @@ import MNGDateUtils from "./mangodate.js"
                         MNGWeekCalendarEvents.selections.push(
                             MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.clickedElement, t)
                         );
-                        // update object html params
-                        t.classList.add("mng-weekcalendar-selected");
                         // put first click flag down to enable fresh selections
                         MNGWeekCalendarEvents.firstClick = false;
                         console.log(MNGWeekCalendarEvents.selections);
                     } else {
                         MNGWeekCalendarEvents.resetSelection();
+                        MNGWeekCalendarEvents.Callback("Agendamento inv&aacute;lido");
                     }
                 } else {
                     // that's a first click on an available cell
@@ -665,7 +666,10 @@ import MNGDateUtils from "./mangodate.js"
                     MNGWeekCalendarEvents.clickedElement = t;
                     // update cell selection on GUI
                     t.classList.add("mng-weekcalendar-selected");
-                    MNGWeekCalendarEvents.Callback("Primeiro click");
+                    const obj = MNGWeekCalendarEvents.getCellObj(t);
+                    const time = ("0" + obj.hrs).slice(-2) + ":" + ("0" + obj.mins).slice(-2);
+                    MNGWeekCalendarEvents.Callback(
+                        `In&iacute;cio do agendamento &agrave;s ${time}h`);
                 }
             }
         }
@@ -886,6 +890,7 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         renderWeekCalendar() {
+            console.log("selections:", MNGWeekCalendarEvents.selections);
             // clear prev calendar (if any)
             this.calGrid.innerHTML = '';
             // add week days
