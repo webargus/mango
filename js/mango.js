@@ -67,6 +67,73 @@ import MNGDateUtils from "./mangodate.js"
             }
         }
     }
+
+    /**
+     *      MNGToast
+     */
+
+    class MNGToast extends MNGGlobalBase {
+
+        toast;
+
+        constructor() {
+            super();
+            this.render();
+        }
+
+        render() {
+            const style = document.createElement("style");
+            style.textContent = `
+            .mng-toast {
+                width: auto;
+                max-width: 260px;
+                padding: 1em 2em;
+                border-radius: 3em;
+                background-color: var(--bottle-green);
+                color: var(--nyanza);
+                font-size: small;
+                border: 2px solid var(--nyanza);
+                text-align: center;
+                position: fixed;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                visibility: hidden;
+                z-index: 1000;
+                -webkit-box-shadow: 3px 3px 8px 2px rgb(0 0 0 / 62%);
+                -moz-box-shadow: 3px 3px 8px 2px rgba(0,0,0,0.62);
+                box-shadow: 3px 3px 8px 2px rgb(0 0 0 / 62%);
+            }
+            .mng-show-toast {
+                visibility: visible;
+                animation: mng-toast 2s ease reverse;
+            }
+            @keyframes mng-toast {
+                0% {
+                    opacity: 0;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }`;
+            super.shadowRoot.append(style);
+            this.toast = document.createElement("div");
+            this.toast.classList.add("mng-toast");
+            super.shadowRoot.appendChild(this.toast);
+            this.toast.addEventListener("animationend", _ => {
+                this.toast.classList.remove("mng-show-toast");
+            });
+        }
+
+        show(message) {
+            this.toast.innerHTML = message;
+            this.toast.classList.add("mng-show-toast");
+        }
+
+    
+    }
+
+    customElements.define("mng-toast", MNGToast);
     
     /**
      *      MNGRoundBtn
@@ -559,6 +626,11 @@ import MNGDateUtils from "./mangodate.js"
         static selections = [];
         static firstClick = false;
         static clickedElement;
+        static callback = null;
+
+        static setCallback(callback) {
+            MNGWeekCalendarEvents.callback = callback;
+        }
 
         static handleHourClick(e) {
             // console.log(e.target);
@@ -574,7 +646,7 @@ import MNGDateUtils from "./mangodate.js"
                         // valid second click -> update dangling selection object
                         // obj list structure
                         // [{ws: 2, hrs: 10, mins: 00}, {ws: 3, hrs: 20, mins: 30}, ...]
-                        MNGWeekCalendarEvents.paintCells(MNGWeekCalendarEvents, t);
+                        MNGWeekCalendarEvents.paintCells(MNGWeekCalendarEvents.clickedElement, t);
                         MNGWeekCalendarEvents.selections.push(
                             MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.clickedElement, t)
                         );
@@ -593,7 +665,14 @@ import MNGDateUtils from "./mangodate.js"
                     MNGWeekCalendarEvents.clickedElement = t;
                     // update cell selection on GUI
                     t.classList.add("mng-weekcalendar-selected");
+                    MNGWeekCalendarEvents.Callback("Primeiro click");
                 }
+            }
+        }
+
+        static Callback(message) {
+            if(MNGWeekCalendarEvents.callback) {
+                MNGWeekCalendarEvents.callback(message);
             }
         }
 
@@ -626,8 +705,10 @@ import MNGDateUtils from "./mangodate.js"
         static resetSelection() {
             let obj = MNGWeekCalendarEvents.clickedElement
             if(obj) {
-                obj.classList.remove("mng-weekcalendar-selected");
-                obj.classList.remove("mng-weekcalendar-selected");
+                if(!MNGWeekCalendarEvents.isCellSelected(MNGWeekCalendarEvents.getCellObj(obj))) {
+                    obj.classList.remove("mng-weekcalendar-selected");
+                    obj.classList.remove("mng-weekcalendar-selected");
+                }
                 MNGWeekCalendarEvents.firstClick = false;
                 MNGWeekCalendarEvents.clickedElement = undefined;
             }
@@ -658,7 +739,7 @@ import MNGDateUtils from "./mangodate.js"
             return false;
         }
 
-        static getCellObjs(t1, t2) {
+        static getCellObjs(t1, t2, fullElements = false) {
             var wd = t1.dataset.wd;
             if(t2.dataset.wd != wd) { return []; }
             wd = parseInt(wd);
@@ -673,12 +754,22 @@ import MNGDateUtils from "./mangodate.js"
                 let hrs = obj.hrs + obj.mins/60;
                 return (wd == obj.wd) && (hrs >= hrs1) && (hrs <= hrs2);
             }).map(div => {
+                if(fullElements) {
+                    return div;
+                }
                 return MNGWeekCalendarEvents.getCellObj(div);
             });
         }
 
         static paintCells(t1, t2, unpaint = false) {
-            // for(ix=0;ix<)
+            const elements = MNGWeekCalendarEvents.getCellObjs(t1, t2, true);
+            elements.forEach(el => {
+                if(unpaint) {
+                    el.classList.remove("mng-weekcalendar-selected");
+                } else {
+                    el.classList.add("mng-weekcalendar-selected");
+                }
+            });
         }
     }
     
@@ -692,7 +783,7 @@ import MNGDateUtils from "./mangodate.js"
         btnRight;
         header;
         calGrid;
-        callback = null;
+        toast;
 
         /**
          *  See 'this in classes' section at 
@@ -702,7 +793,6 @@ import MNGDateUtils from "./mangodate.js"
          */
         constructor(callback = null) {
             super();
-            this.callback = callback;
             this.goNextWeek = this.goNextWeek.bind(this);         // crashes unless we bind these methods to 'this'
             this.goPreviousWeek = this.goPreviousWeek.bind(this);
         }
@@ -759,11 +849,17 @@ import MNGDateUtils from "./mangodate.js"
                     background-color: orange;
                 }
             `;
-            
             super.shadowRoot.append(style); 
+
             const wrapper = document.createElement("div");
             wrapper.classList.add("mng-weekcalendar-wrapper");
-
+            
+            this.toast = document.createElement("mng-toast");
+            wrapper.appendChild(this.toast);
+            MNGWeekCalendarEvents.setCallback(message => {
+                this.toast.show(message);
+            });
+            
             const hdr = document.createElement("div");
             hdr.classList.add("mng-two-btn-header");
             // arrow left
@@ -825,7 +921,9 @@ import MNGDateUtils from "./mangodate.js"
                             whr.classList.add("mng-weekcalendar-border-bottom");
                         }
                         whr.innerText = `${hrs}:${mins}h`;
-                        whr.addEventListener("click", MNGWeekCalendarEvents.handleHourClick);
+                        whr.addEventListener("click", e => {
+                            MNGWeekCalendarEvents.handleHourClick(e);
+                        });
                         weekNames.appendChild(whr);
                     }
                 }

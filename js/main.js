@@ -45,7 +45,13 @@ onload = _ => {
     // p.style.padding = ".5em";
     // accordeon.addItem(p);
 
+    const toast = document.getElementById("mng-toast");
     const btn = document.createElement("mng-round-btn");
+    btn.addEventListener("click", e => {
+        e.preventDefault();
+        toast.show("Toast test");
+        console.log("toast btn clicked");
+    });
     accordeon.addItem(btn);
 
     div = document.createElement("div");
