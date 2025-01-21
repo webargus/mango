@@ -601,15 +601,15 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         static validateSecondClick(t) {
-            const firstObj = MNGWeekCalendarEvents.getClickedObj(MNGWeekCalendarEvents.clickedElement);
-            const secondObj = MNGWeekCalendarEvents.getClickedObj(t);
-            if(firstObj.wday != secondObj.wday) {
+            const firstObj = MNGWeekCalendarEvents.getCellObj(MNGWeekCalendarEvents.clickedElement);
+            const secondObj = MNGWeekCalendarEvents.getCellObj(t);
+            if(firstObj.wd != secondObj.wd) {
                 // user clicked on a different day column -> reset selection
                 MNGWeekCalendarEvents.resetSelection();
                 return false;
             } else {
-                // user clicked on the hour cell initially selected -> reset selection
-                if(firstObj.hour == secondObj.hour && firstObj.min == secondObj.min) {
+                // user clicked again on the hour cell initially selected -> reset selection
+                if(firstObj.hrs == secondObj.hrs && firstObj.mins == secondObj.mins) {
                     MNGWeekCalendarEvents.resetSelection();
                     return false;
                 }
@@ -629,41 +629,42 @@ import MNGDateUtils from "./mangodate.js"
             return true;
         }
 
-        static getClickedObj(t) {
-            return {wday: t.dataset.wd,
-                    hour: t.dataset.hrs,
-                    min:  t.dataset.mins};
-        }
-
         static resetSelection() {
             let obj = MNGWeekCalendarEvents.clickedElement
             if(obj) {
-                if(obj.init) {
-                    obj.init.classList.remove("mng-weekcalendar-selected");
-                    obj.init.setAttribute("status", "available");
-                }
-                if(obj.end) {
-                    obj.end.classList.remove("mng-weekcalendar-selected");
-                    obj.end.setAttribute("status", "available");
-                }
+                obj.classList.remove("mng-weekcalendar-selected");
+                obj.dataset.status = "available";
+                obj.classList.remove("mng-weekcalendar-selected");
+                obj.dataset.status = "available";
                 MNGWeekCalendarEvents.firstClick = false;
-                MNGWeekCalendarEvents.clickedElement = {};
+                MNGWeekCalendarEvents.clickedElement = undefined;
             }
+        }
+
+        static getCellObj(t) {
+            return {
+                    wd: parseInt(t.dataset.wd),
+                    hrs: parseInt(t.dataset.hrs),
+                    mins: parseInt(t.dataset.mins)
+                   };
         }
 
         static getCellObjs(t1, t2) {
             var wd = t1.dataset.wd;
             if(t2.dataset.wd != wd) { return []; }
             wd = parseInt(wd);
-            var hrs1 = parseInt(t1.dataset.hrs) + parseInt(t1.dataset.mins)/60;
-            var hrs2 = parseInt(t2.dataset.hrs) + parseInt(t2.dataset.mins)/60;
+            var hrs1 = MNGWeekCalendarEvents.getCellObj(t1);
+            hrs1 = hrs1.hrs + hrs1.mins/60;
+            var hrs2 = MNGWeekCalendarEvents.getCellObj(t2);
+            hrs2 = hrs2.hrs + hrs2.mins/60;
             // swap hours if init hour greater than end one
             [hrs1, hrs2] = hrs1 > hrs2 ? [hrs2, hrs1] : [hrs1, hrs2];
             return [...t1.parentElement.children].filter( div => {
-                let hrs = parseInt(div.dataset.hrs) + parseInt(div.dataset.mins)/60;
-                return (wd == parseInt(div.dataset.wd)) && (hrs >= hrs1) && (hrs <= hrs2);
+                let obj = MNGWeekCalendarEvents.getCellObj(div);
+                let hrs = obj.hrs + obj.mins/60;
+                return (wd == obj.wd) && (hrs >= hrs1) && (hrs <= hrs2);
             }).map(div => {
-                return {wd: div.dataset.wd, hrs: div.dataset.hrs, mins: div.dataset.mins};
+                return MNGWeekCalendarEvents.getCellObj(div);
             });
         }
     }
