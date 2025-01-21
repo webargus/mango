@@ -564,41 +564,36 @@ import MNGDateUtils from "./mangodate.js"
             // console.log(e.target);
             e.preventDefault();
             const t = e.target;
-            const status = t.dataset.status ?? "available";
-            switch(status) {
-                case "available":
-                    if(MNGWeekCalendarEvents.firstClick) {
-                        // user has clicked on an available cell before
-                        if(MNGWeekCalendarEvents.validateSecondClick(t)) {
-                            // valid second click -> update dangling selection object
-                            // obj list structure
-                            // [{ws: 2, hrs: 10, mins: 00}, {ws: 3, hrs: 20, mins: 30}, ...]
-                            MNGWeekCalendarEvents.selections.push(
-                                MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.clickedElement, t)
-                            );
-                            // update object html params
-                            t.classList.add("mng-weekcalendar-selected");
-                            t.dataset.status = "taken";
-                            // put first click flag down to enable fresh selections
-                            MNGWeekCalendarEvents.firstClick = false;
-                            console.log(MNGWeekCalendarEvents.selections);
-                        } else {
-                            MNGWeekCalendarEvents.resetSelection();
-                        }
-                    } else {
-                        // that's a first click on an available cell
-                        MNGWeekCalendarEvents.firstClick = true;
-                        // set dangling selection initial object to this one
-                        MNGWeekCalendarEvents.clickedElement = t;
-                        // update cell selection on GUI
+            if(MNGWeekCalendarEvents.isCellSelected(MNGWeekCalendarEvents.getCellObj(t))) {
+                // user made a second click on a cell already taken
+                MNGWeekCalendarEvents.resetSelection();
+            } else {
+                if(MNGWeekCalendarEvents.firstClick) {
+                    // user has clicked on an available cell before
+                    if(MNGWeekCalendarEvents.validateSecondClick(t)) {
+                        // valid second click -> update dangling selection object
+                        // obj list structure
+                        // [{ws: 2, hrs: 10, mins: 00}, {ws: 3, hrs: 20, mins: 30}, ...]
+                        MNGWeekCalendarEvents.paintCells(MNGWeekCalendarEvents, t);
+                        MNGWeekCalendarEvents.selections.push(
+                            MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.clickedElement, t)
+                        );
+                        // update object html params
                         t.classList.add("mng-weekcalendar-selected");
-                        t.dataset.status = "taken";
+                        // put first click flag down to enable fresh selections
+                        MNGWeekCalendarEvents.firstClick = false;
+                        console.log(MNGWeekCalendarEvents.selections);
+                    } else {
+                        MNGWeekCalendarEvents.resetSelection();
                     }
-                    break;
-                case "taken":
-                    // user made a second click on a cell already taken
-                    MNGWeekCalendarEvents.resetSelection();
-                    break;
+                } else {
+                    // that's a first click on an available cell
+                    MNGWeekCalendarEvents.firstClick = true;
+                    // set dangling selection initial object to this one
+                    MNGWeekCalendarEvents.clickedElement = t;
+                    // update cell selection on GUI
+                    t.classList.add("mng-weekcalendar-selected");
+                }
             }
         }
 
@@ -621,14 +616,8 @@ import MNGDateUtils from "./mangodate.js"
             const sel = MNGWeekCalendarEvents.getCellObjs(MNGWeekCalendarEvents.clickedElement, t);
             for(let iy=0; iy< sel.length; iy++) {
                 let s0 = sel[iy];
-                for(let iz=0; iz<MNGWeekCalendarEvents.selections.length; iz++) {
-                    let s1 = MNGWeekCalendarEvents.selections[iz];
-                    for(let ix=0; ix<s1.length;ix++) {
-                        let s2 = s1[ix];
-                        if(s0.wd == s2.wd && s0.hrs == s2.hrs && s0.mins == s2.mins) {
-                            return false;
-                        }
-                    }
+                if(MNGWeekCalendarEvents.isCellSelected(s0)) {
+                    return false;
                 }
             };
             return true;
@@ -638,9 +627,7 @@ import MNGDateUtils from "./mangodate.js"
             let obj = MNGWeekCalendarEvents.clickedElement
             if(obj) {
                 obj.classList.remove("mng-weekcalendar-selected");
-                obj.dataset.status = "available";
                 obj.classList.remove("mng-weekcalendar-selected");
-                obj.dataset.status = "available";
                 MNGWeekCalendarEvents.firstClick = false;
                 MNGWeekCalendarEvents.clickedElement = undefined;
             }
@@ -652,6 +639,23 @@ import MNGDateUtils from "./mangodate.js"
                     hrs: parseInt(t.dataset.hrs),
                     mins: parseInt(t.dataset.mins)
                    };
+        }
+
+        static isCellSelected(cell) {
+            if(MNGWeekCalendarEvents.selections.length == 0) {
+                return false;
+            }
+            for(let ix=0; ix<MNGWeekCalendarEvents.selections.length; ix++) {
+                let sel = MNGWeekCalendarEvents.selections[ix];
+                for(let iy=0; iy<sel.length; iy++) {
+                    if(sel[iy].wd == cell.wd &&
+                        sel[iy].hrs == cell.hrs && 
+                        sel[iy].mins == cell.mins) {
+                            return true;
+                    }
+                }
+            }
+            return false;
         }
 
         static getCellObjs(t1, t2) {
@@ -671,6 +675,10 @@ import MNGDateUtils from "./mangodate.js"
             }).map(div => {
                 return MNGWeekCalendarEvents.getCellObj(div);
             });
+        }
+
+        static paintCells(t1, t2, unpaint = false) {
+            // for(ix=0;ix<)
         }
     }
     
