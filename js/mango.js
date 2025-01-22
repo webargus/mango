@@ -837,11 +837,11 @@ import MNGDateUtils from "./mangodate.js"
                     border: transparent;
                     border-left: 1px solid var(--text-dark);
                     border-top: 1px solid var(--text-dark);
-                    padding: .5em;
                 }
-                .mng-weekcalendardays-grid > div:nth-child(n+8) {
+                .mng-weekcalendardays-grid > div:nth-child(n+2) {
                     cursor: pointer;
                     font-size: .7em;
+                    padding: .5em;
                 }
                 .mng-weekcalendar-border-right {
                     border-right: 1px solid var(--text-dark)!important;
@@ -849,6 +849,19 @@ import MNGDateUtils from "./mangodate.js"
                 .mng-weekcalendar-border-bottom {
                     border-bottom: 1px solid var(--text-dark)!important;
                 }
+                .mng-weekcalendar-header {
+                    display: grid!important;
+                    grid-template-columns: repeat(7,1fr);
+                    grid-column: span 7;
+                    text-align: center;
+                    padding: 0 !important;
+                    width: 99.89%;
+                }
+                .mng-weekcalendar-header > div {
+                    border-right: 1px solid var(--text-dark)!important;
+                    padding: .5em;
+                }
+                
                 .mng-weekcalendar-selected {
                     background-color: orange;
                 }
@@ -898,6 +911,8 @@ import MNGDateUtils from "./mangodate.js"
             weekNames.classList.add("mng-weekcalendardays-grid");
             const weeks = this.dateUtils.getWeekObj();
             this.composeWeekCalendarHeaderText(weeks);
+            const weekHeader = document.createElement("div");
+            weekHeader.classList.add("mng-weekcalendar-header");
             weeks.forEach((date, ix, arr) => {
                 let div = document.createElement("div");
                 let div0 = document.createElement("div");
@@ -907,8 +922,9 @@ import MNGDateUtils from "./mangodate.js"
                 div0.innerText = `${date.toLocaleString("pt-br", {month: "long"}).substring(0,3)}`;
                 div.appendChild(div0);
                 if(ix == arr.length - 1) { div.classList.add("mng-weekcalendar-border-right"); }
-                weekNames.appendChild(div);
+                weekHeader.appendChild(div);
             });
+            weekNames.appendChild(weekHeader);
             // render hours grid
             const initHour = parseInt(this.dataset.initHour);
             const endHour = parseInt(this.dataset.endHour);
