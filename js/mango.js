@@ -624,15 +624,19 @@ import MNGDateUtils from "./mangodate.js"
     class MNGWeekCalendarEvents {
 
         selections = [];
-        firstClick = false;
         clickedElement;
         callback = null;
+        repaintEvent;
         static CBMESSAGE = "message";
         static CBPAINT = "paint required";
         static CBRESET = "reset selection";
+        static EVREPAINT = "repaint";
 
         constructor(callback = null) {
             this.callback = callback;
+            this.repaintSelection = this.repaintSelection.bind(this);
+            this.repaintEvent = new CustomEvent(MNGWeekCalendarEvents.EVREPAINT);
+            document.addEventListener(MNGWeekCalendarEvents.EVREPAINT, this.repaintSelection);
         }
 
         handleHourClick(e) {
@@ -645,7 +649,7 @@ import MNGDateUtils from "./mangodate.js"
                 /** TODO: Prompt user to cancel selection */
                 // this.Callback("Agendamento inv&aacute;lido 1");
             } else {
-                if(this.firstClick) {
+                if(this.clickedElement) {
                     // user has clicked on an available cell before
                     if(this.validateSecondClick(t)) {
                         // valid second click -> update dangling selection object
@@ -662,16 +666,14 @@ import MNGDateUtils from "./mangodate.js"
                         this.selections.push(
                             this.tagObjWithTimestamp(date, cellObjs)
                         );
-                        // put first click flag down to enable fresh selections
-                        this.firstClick = false;
                         this.paintCells(this.clickedElement, t);
+                        this.clickedElement = undefined;
                     } else {
                         this.resetSelection();
                         this.Callback(MNGWeekCalendarEvents.CBMESSAGE, "Agendamento inv&aacute;lido");
                     }
                 } else {
-                    // that's a first click on an available cell
-                    this.firstClick = true;
+                    // clicked element undefined => that's a first click on an available cell
                     // set dangling selection initial object to this one
                     this.clickedElement = t;
                     // update cell selection on GUI
@@ -729,7 +731,6 @@ import MNGDateUtils from "./mangodate.js"
                 if(!this.isCellSelected(this.getCellObj(obj))) {
                     this.Callback(MNGWeekCalendarEvents.CBRESET, obj);
                 }
-                this.firstClick = false;
                 this.clickedElement = undefined;
             }
         }
@@ -786,6 +787,12 @@ import MNGDateUtils from "./mangodate.js"
             const elements = this.getDOMCellObjs(t1, t2);
             this.Callback(MNGWeekCalendarEvents.CBPAINT, unpaint, elements);
         }
+
+        repaintSelection() {
+            console.log("repaint called");
+            console.log(this.selections);
+
+        }
     }
     
     /**
@@ -809,7 +816,8 @@ import MNGDateUtils from "./mangodate.js"
          */
         constructor() {
             super();
-            this.goNextWeek = this.goNextWeek.bind(this);         // crashes unless we bind these methods to 'this'
+            // crashes unless we bind these methods to 'this'
+            this.goNextWeek = this.goNextWeek.bind(this);
             this.goPreviousWeek = this.goPreviousWeek.bind(this);
             this.EventCallback = this.EventCallback.bind(this);
             this.eventHandler = new MNGWeekCalendarEvents(this.EventCallback);
@@ -893,7 +901,6 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         renderWeekCalendar() {
-            console.log("selections:", this.selections);
             // clear prev calendar (if any)
             this.calGrid.innerHTML = '';
             // add week days
@@ -942,6 +949,7 @@ import MNGDateUtils from "./mangodate.js"
                 }
             }
             this.calGrid.appendChild(hoursGrid);
+            document.dispatchEvent(this.eventHandler.repaintEvent);
         }
 
         formatWeekCalendarHeaderText(date) {
