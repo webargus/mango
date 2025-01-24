@@ -658,7 +658,6 @@ import MNGDateUtils from "./mangodate.js"
                         var date = t.parentElement.previousElementSibling
                                                     .querySelector(`div:nth-child(${ix})`).dataset.date;
                         date = parseInt(date);
-                        console.log(date);
                         const cellObjs = this.getCellObjs(this.clickedElement, t);
                         this.selections.push(
                             this.tagObjWithTimestamp(date, cellObjs)
@@ -666,7 +665,6 @@ import MNGDateUtils from "./mangodate.js"
                         // put first click flag down to enable fresh selections
                         this.firstClick = false;
                         this.paintCells(this.clickedElement, t);
-                        console.log(this.selections);
                     } else {
                         this.resetSelection();
                         this.Callback(MNGWeekCalendarEvents.CBMESSAGE, "Agendamento inv&aacute;lido");
@@ -689,7 +687,6 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         tagObjWithTimestamp(time, tn) {
-            console.log(tn);
             tn.forEach(obj => (obj.time = time));
             return tn;
         }
@@ -731,8 +728,6 @@ import MNGDateUtils from "./mangodate.js"
             if(obj) {
                 if(!this.isCellSelected(this.getCellObj(obj))) {
                     this.Callback(MNGWeekCalendarEvents.CBRESET, obj);
-                    obj.classList.remove("mng-weekcalendar-selected");
-                    obj.classList.remove("mng-weekcalendar-selected");
                 }
                 this.firstClick = false;
                 this.clickedElement = undefined;
@@ -765,7 +760,7 @@ import MNGDateUtils from "./mangodate.js"
             return false;
         }
 
-        getCellObjs(t1, t2, rawElements = false) {
+        getDOMCellObjs(t1, t2) {
             var wd = t1.dataset.wd;
             if(t2.dataset.wd != wd) { return []; }
             wd = parseInt(wd);
@@ -779,24 +774,17 @@ import MNGDateUtils from "./mangodate.js"
                 let obj = this.getCellObj(div);
                 let hrs = obj.hrs + obj.mins/60;
                 return (wd == obj.wd) && (hrs >= hrs1) && (hrs <= hrs2);
-            }).map(div => {
-                if(rawElements) {
-                    return div;
-                }
+            });
+        }
+        getCellObjs(t1, t2) {
+            return this.getDOMCellObjs(t1,t2).map(div => {
                 return this.getCellObj(div);
             });
         }
 
         paintCells(t1, t2, unpaint = false) {
-            const elements = this.getCellObjs(t1, t2, true);
-            this.Callback(MNGWeekCalendarEvents.CBPAINT, t1, t2, unpaint);
-            elements.forEach(el => {
-                if(unpaint) {
-                    el.classList.remove("mng-weekcalendar-selected");
-                } else {
-                    el.classList.add("mng-weekcalendar-selected");
-                }
-            });
+            const elements = this.getDOMCellObjs(t1, t2);
+            this.Callback(MNGWeekCalendarEvents.CBPAINT, unpaint, elements);
         }
     }
     
@@ -823,6 +811,7 @@ import MNGDateUtils from "./mangodate.js"
             super();
             this.goNextWeek = this.goNextWeek.bind(this);         // crashes unless we bind these methods to 'this'
             this.goPreviousWeek = this.goPreviousWeek.bind(this);
+            this.EventCallback = this.EventCallback.bind(this);
             this.eventHandler = new MNGWeekCalendarEvents(this.EventCallback);
             this.dateUtils = new MNGDateUtils();
         }
@@ -980,7 +969,29 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         EventCallback(message, ...data) {
-            console.log(data);
+            switch(message) {
+                case MNGWeekCalendarEvents.CBMESSAGE:
+                    this.toast.show(data);
+                    break;
+                case MNGWeekCalendarEvents.CBPAINT:
+                    // data = [unpaint flag, [div1, div2, ...]]
+                    const unpaint = data[0];
+                    const elements = data[1];
+                    elements.forEach(div => {
+                        if(unpaint) {
+                            div.classList.remove("mng-weekcalendar-selected");
+                        } else {
+                            div.classList.add("mng-weekcalendar-selected");
+                        }
+                    });
+                    break;
+                case MNGWeekCalendarEvents.CBRESET:
+                    data.forEach(el => {
+                        el.classList.remove("mng-weekcalendar-selected");
+                        el.classList.remove("mng-weekcalendar-selected");
+                    });
+                    break;
+            }
         }
     }
 
