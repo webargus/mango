@@ -626,31 +626,24 @@ import MNGDateUtils from "./mangodate.js"
         selections = [];
         clickedElement;
         callback = null;
-        repaintEvent;
         static CBMESSAGE = "message";
         static CBPAINT = "paint required";
         static CBRESET = "reset selection";
-        static EVREPAINT = "repaint";
 
         constructor(callback = null) {
             this.callback = callback;
-            this.repaintSelection = this.repaintSelection.bind(this);
-            this.repaintEvent = new CustomEvent(MNGWeekCalendarEvents.EVREPAINT);
-            document.addEventListener(MNGWeekCalendarEvents.EVREPAINT, this.repaintSelection);
         }
 
         handleHourClick(e) {
-            // console.log(e.target);
             e.preventDefault();
             const t = e.target;
             if(this.isCellSelected(this.getCellObj(t))) {
                 // user clicked on a cell already taken
                 this.resetSelection();
                 /** TODO: Prompt user to cancel selection */
-                // this.Callback("Agendamento inv&aacute;lido 1");
             } else {
                 if(this.clickedElement) {
-                    // user has clicked on an available cell before
+                    // clicked element defined => user has clicked on an available cell before
                     if(this.validateSecondClick(t)) {
                         // valid second click -> update dangling selection object
                         // obj list structure:
@@ -786,12 +779,6 @@ import MNGDateUtils from "./mangodate.js"
         paintCells(t1, t2, unpaint = false) {
             const elements = this.getDOMCellObjs(t1, t2);
             this.Callback(MNGWeekCalendarEvents.CBPAINT, unpaint, elements);
-        }
-
-        repaintSelection() {
-            console.log("repaint called");
-            console.log(this.selections);
-
         }
     }
     
@@ -949,7 +936,6 @@ import MNGDateUtils from "./mangodate.js"
                 }
             }
             this.calGrid.appendChild(hoursGrid);
-            document.dispatchEvent(this.eventHandler.repaintEvent);
         }
 
         formatWeekCalendarHeaderText(date) {
