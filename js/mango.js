@@ -632,6 +632,7 @@ import MNGDateUtils from "./mangodate.js"
 
         constructor(callback = null) {
             this.callback = callback;
+            // needed or crash in handleHourClick inner function calls
             this.handleHourClick = this.handleHourClick.bind(this);
         }
 
@@ -647,7 +648,7 @@ import MNGDateUtils from "./mangodate.js"
                     // clicked element defined => user has clicked on an available cell before
                     if(this.validateSecondClick(t)) {
                         // valid second click -> update dangling selection object
-                        // obj list structure:
+                        // selection list structure:
                         // [1738897200000, 1738919900000, ...]
                         this.selections.push(new Date(parseInt(t.dataset.time)).getTime());
                         this.paintCells(this.clickedElement, t);
@@ -662,8 +663,7 @@ import MNGDateUtils from "./mangodate.js"
                     // set dangling selection initial object to this one
                     this.clickedElement = t;
                     // update cell selection on GUI
-                    /** TODO: do it using callback! */
-                    t.classList.add("mng-weekcalendar-selected");
+                    this.paintCells(t,t);
                     const date = new Date(parseInt(t.dataset.time));
                     const time = ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2);
                     this.Callback(
@@ -719,15 +719,6 @@ import MNGDateUtils from "./mangodate.js"
                 }
                 this.clickedElement = undefined;
             }
-        }
-
-        getCellObj(t) {
-            return {
-                    wd: parseInt(t.dataset.wd),
-                    hrs: parseInt(t.dataset.hrs),
-                    mins: parseInt(t.dataset.mins),
-                    time: parseInt(t.dataset.time)
-                   };
         }
 
         isDivSelected(time) {
