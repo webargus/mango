@@ -632,12 +632,13 @@ import MNGDateUtils from "./mangodate.js"
 
         constructor(callback = null) {
             this.callback = callback;
+            this.handleHourClick = this.handleHourClick.bind(this);
         }
 
         handleHourClick(e) {
             e.preventDefault();
             const t = e.target;
-            if(this.isCellSelected(this.getCellObj(t))) {
+            if(this.isDivSelected(t.dataset.time)) {
                 // user clicked on a cell already taken
                 this.resetSelection();
                 /** TODO: Prompt user to cancel selection */
@@ -651,14 +652,15 @@ import MNGDateUtils from "./mangodate.js"
                         //  {ws: 3, hrs: 20, mins: 30, time: 1738919900000}, ...]
                         // get time from timetable header in DOM;
                         // it will be the same for all objs within the range selected
-                        const ix = parseInt(t.dataset.wd) + 1; // CSS child indices are one unit > wdays
-                        var date = t.parentElement.previousElementSibling
-                                                    .querySelector(`div:nth-child(${ix})`).dataset.date;
-                        date = parseInt(date);
-                        const cellObjs = this.getCellObjs(this.clickedElement, t);
-                        this.selections.push(
-                            this.tagObjWithTimestamp(date, cellObjs)
-                        );
+                        this.selections.push(new Date(t.dataset.time).getTime());
+                        // const ix = parseInt(t.dataset.wd) + 1; // CSS child indices are one unit > wdays
+                        // var date = t.parentElement.previousElementSibling
+                        //                             .querySelector(`div:nth-child(${ix})`).dataset.date;
+                        // date = parseInt(date);
+                        // const cellObjs = this.getCellObjs(this.clickedElement, t);
+                        // this.selections.push(
+                        //     this.tagObjWithTimestamp(date, cellObjs)
+                        // );
                         this.paintCells(this.clickedElement, t);
                         this.clickedElement = undefined;
                     } else {
@@ -670,9 +672,10 @@ import MNGDateUtils from "./mangodate.js"
                     // set dangling selection initial object to this one
                     this.clickedElement = t;
                     // update cell selection on GUI
+                    /** TODO: do it using callback! */
                     t.classList.add("mng-weekcalendar-selected");
-                    const obj = this.getCellObj(t);
-                    const time = ("0" + obj.hrs).slice(-2) + ":" + ("0" + obj.mins).slice(-2);
+                    const date = new Date(t.dataset.time);
+                    const time = ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2);
                     this.Callback(
                         MNGWeekCalendarEvents.CBMESSAGE,
                         `In&iacute;cio do agendamento &agrave;s ${time}h`
@@ -693,25 +696,25 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         validateSecondClick(t) {
-            const firstObj = this.getCellObj(this.clickedElement);
-            const secondObj = this.getCellObj(t);
-            if(firstObj.wd != secondObj.wd) {
+            const time1 = parseInt(this.clickedElement.dataset.time);
+            const time2 = parseInt(t.dataset.time);
+            if(time1 == time2) {
+                // user clicked again on the div initially selected -> reset selection
+                this.resetSelection();
+                return false;
+            }
+            const date1 = new Date(time1);
+            const date2 = new Date(time2);
+            if(date1.getDay() != date2.getDay()) {
                 // user clicked on a different day column -> reset selection
                 this.resetSelection();
                 return false;
-            } else {
-                // user clicked again on the hour cell initially selected -> reset selection
-                if(firstObj.hrs == secondObj.hrs && firstObj.mins == secondObj.mins) {
-                    this.resetSelection();
-                    return false;
-                }
             }
             // check if there is any cell previously selected between cell selected first
             // and this last one inclusevely
-            const sel = this.getCellObjs(this.clickedElement, t);
-            for(let iy=0; iy< sel.length; iy++) {
-                let s0 = sel[iy];
-                if(this.isCellSelected(s0)) {
+            const sel = this.getDivTimes(this.clickedElement, t);
+            for(let ix=0; ix<sel.length; ix++) {
+                if(this.isDivSelected(sel[ix])) {
                     return false;
                 }
             };
@@ -719,10 +722,10 @@ import MNGDateUtils from "./mangodate.js"
         }
 
         resetSelection() {
-            let obj = this.clickedElement
-            if(obj) {
-                if(!this.isCellSelected(this.getCellObj(obj))) {
-                    this.Callback(MNGWeekCalendarEvents.CBRESET, obj);
+            let div = this.clickedElement;
+            if(div) {
+                if(!this.isDivSelected(div.dataset.time)) {
+                    this.Callback(MNGWeekCalendarEvents.CBRESET, div);
                 }
                 this.clickedElement = undefined;
             }
@@ -737,47 +740,36 @@ import MNGDateUtils from "./mangodate.js"
                    };
         }
 
-        isCellSelected(cell) {
+        isDivSelected(time) {
             if(this.selections.length == 0) {
                 return false;
             }
-            for(let ix=0; ix<this.selections.length; ix++) {
-                let sel = this.selections[ix];
-                for(let iy=0; iy<sel.length; iy++) {
-                    if(sel[iy].wd == cell.wd &&
-                        sel[iy].hrs == cell.hrs && 
-                        sel[iy].mins == cell.mins) {
-                            return true;
-                    }
-                }
+            for(let ix = 0; ix < this.selections.length; ix++) {
+                if(this.selections[ix] == time) return true;
             }
             return false;
         }
 
-        getDOMCellObjs(t1, t2) {
-            var wd = t1.dataset.wd;
-            if(t2.dataset.wd != wd) { return []; }
-            wd = parseInt(wd);
-            var hrs1 = this.getCellObj(t1);
-            hrs1 = hrs1.hrs + hrs1.mins/60;
-            var hrs2 = this.getCellObj(t2);
-            hrs2 = hrs2.hrs + hrs2.mins/60;
-            // swap hours if init hour greater than end one
-            [hrs1, hrs2] = hrs1 > hrs2 ? [hrs2, hrs1] : [hrs1, hrs2];
+        getDivs(t1, t2) {
+            var time1 = parseInt(t1.dataset.time);
+            var time2 = parseInt(t2.dataset.time);
+            const date1 = new Date(time1);
+            const date2 = new Date(time2);
+            if(date1.getDay() != date2.getDay()) { return []; }
+            [time1, time2] = time1 > time2 ? [time2, time1] : [time1, time2];
             return [...t1.parentElement.children].filter( div => {
-                let obj = this.getCellObj(div);
-                let hrs = obj.hrs + obj.mins/60;
-                return (wd == obj.wd) && (hrs >= hrs1) && (hrs <= hrs2);
+                let time = parseInt(div.dataset.time);
+                return (time >= time1) && (time <= time2);
             });
         }
-        getCellObjs(t1, t2) {
-            return this.getDOMCellObjs(t1,t2).map(div => {
-                return this.getCellObj(div);
+        getDivTimes(t1, t2) {
+            return this.getDivs(t1,t2).map(div => {
+                return div.dataset.time;
             });
         }
 
         paintCells(t1, t2, unpaint = false) {
-            const elements = this.getDOMCellObjs(t1, t2);
+            const elements = this.getDivs(t1, t2);
             this.Callback(MNGWeekCalendarEvents.CBPAINT, unpaint, elements);
         }
     }
@@ -918,21 +910,16 @@ import MNGDateUtils from "./mangodate.js"
             for(let hrs = initHour; hrs <= endHour; hrs++) {
                 for(let stp = 0; stp <= timeStep; stp++) {
                     let mins = 3*stp + "0";
-                    for(let wd = 0; wd < 7; wd++) {
+                    weeks.forEach( date => {
                         var whr = document.createElement("div");
-                        whr.dataset.wd = wd;
-                        whr.dataset.hrs = hrs;
-                        whr.dataset.mins = mins;
-                        if(wd == 6) { whr.classList.add("mng-weekcalendar-border-right"); }
+                        whr.dataset.time = new Date(date.getFullYear(), date.getMonth(),date.getDate(),hrs,mins).getTime();
                         if(hrs + stp == endHour + timeStep) {
                             whr.classList.add("mng-weekcalendar-border-bottom");
                         }
                         whr.innerText = `${hrs}:${mins}h`;
-                        whr.addEventListener("click", e => {
-                            this.eventHandler.handleHourClick(e);
-                        });
+                        whr.addEventListener("click", this.eventHandler.handleHourClick);
                         hoursGrid.appendChild(whr);
-                    }
+                    });
                 }
             }
             this.calGrid.appendChild(hoursGrid);
