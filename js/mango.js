@@ -648,21 +648,11 @@ import MNGDateUtils from "./mangodate.js"
                     if(this.validateSecondClick(t)) {
                         // valid second click -> update dangling selection object
                         // obj list structure:
-                        // [{ws: 2, hrs: 10, mins: 00, time: 1738897200000},
-                        //  {ws: 3, hrs: 20, mins: 30, time: 1738919900000}, ...]
-                        // get time from timetable header in DOM;
-                        // it will be the same for all objs within the range selected
-                        this.selections.push(new Date(t.dataset.time).getTime());
-                        // const ix = parseInt(t.dataset.wd) + 1; // CSS child indices are one unit > wdays
-                        // var date = t.parentElement.previousElementSibling
-                        //                             .querySelector(`div:nth-child(${ix})`).dataset.date;
-                        // date = parseInt(date);
-                        // const cellObjs = this.getCellObjs(this.clickedElement, t);
-                        // this.selections.push(
-                        //     this.tagObjWithTimestamp(date, cellObjs)
-                        // );
+                        // [1738897200000, 1738919900000, ...]
+                        this.selections.push(new Date(parseInt(t.dataset.time)).getTime());
                         this.paintCells(this.clickedElement, t);
                         this.clickedElement = undefined;
+                        console.log(this.selections);
                     } else {
                         this.resetSelection();
                         this.Callback(MNGWeekCalendarEvents.CBMESSAGE, "Agendamento inv&aacute;lido");
@@ -674,7 +664,7 @@ import MNGDateUtils from "./mangodate.js"
                     // update cell selection on GUI
                     /** TODO: do it using callback! */
                     t.classList.add("mng-weekcalendar-selected");
-                    const date = new Date(t.dataset.time);
+                    const date = new Date(parseInt(t.dataset.time));
                     const time = ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2);
                     this.Callback(
                         MNGWeekCalendarEvents.CBMESSAGE,
